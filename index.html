@@ -1320,9 +1320,10 @@
 
                         <button id="btn-recover" class="btn btn-primary" style="display:none;" onclick="openRecoverConfirm()">🔄 Khởi động lại BMS</button>
 
-                        <button class="btn btn-warning" onclick="restartDevice()">🔄 Chế độ thiết lập </button>
+                        <button class="btn btn-warning" onclick="restartDevice()">Chế độ thiết lập </button>
 
-                        <button class="btn btn-info" onclick="powerCycleDevice()"> Reset thủ công </button>
+                        <button class="btn btn-info" onclick="powerCycleDevice()">⚡ Khởi động lại nguồn (5s)</button>
+                        <button class="btn btn-success" onclick="disconnectSelectedDevice()">🔌 Ngắt kết nối</button>
 
                     </div>
 
@@ -1382,7 +1383,13 @@
 
             <div id="settings-tab" class="tab-content">
 
-                <div class="grid">
+                <div id="settings-empty" style="text-align:center; padding:60px 20px; color:#666; display: none;">
+                    <div style="font-size:48px; opacity:0.25;">🛠️</div>
+                    <h2 style="margin-top:10px; color:#333;">Chưa chọn thiết bị</h2>
+                    <p>Chọn một thiết bị từ danh sách bên trái .</p>
+                </div>
+
+                <div id="settings-content" class="grid">
 
                     <div class="card">
 
@@ -1888,6 +1895,14 @@
             if(tab==='monitor' && btns[0]) btns[0].classList.add('active');
 
             if(tab==='settings' && btns[1]) btns[1].classList.add('active');
+            // Toggle settings placeholder vs content
+            const hasSelection = !!selectedDeviceId;
+            const se = document.getElementById('settings-empty');
+            const sc = document.getElementById('settings-content');
+            if (se && sc){
+                if (hasSelection){ se.style.display = 'none'; sc.style.display = ''; }
+                else { se.style.display = ''; sc.style.display = 'none'; }
+            }
 
             if(tab==='control' && btns[2]) btns[2].classList.add('active');
 
@@ -1923,8 +1938,7 @@
 
                     console.log('MQTT kết nối thành công!');
 
-                    showAlert('Kết nối MQTT thành công!', 'success');
-
+                    // Tránh spam thông báo trên UI khi kết nối lại nhiều lần
                     reconnectAttempts = 0;
 
                     
@@ -2195,6 +2209,8 @@
 
                 }
 
+                // Giữ nguyên trạng thái khi chưa chọn thiết bị (không tự động chọn)
+
 
 
                 updateDeviceList();
@@ -2328,6 +2344,11 @@
                 document.getElementById('selected-device-subtitle').textContent = 
 
                     `IP: ${device.info.local_ip || '--'} | WiFi: ${device.info.wifi_ssid || '--'}`;
+
+                // Khi đã chọn thiết bị, hiển thị settings content và ẩn placeholder
+                const se = document.getElementById('settings-empty');
+                const sc = document.getElementById('settings-content');
+                if (se && sc){ se.style.display = 'none'; sc.style.display = ''; }
 
                 
                 // Cập nhật trạng thái nút xóa
@@ -2618,10 +2639,30 @@
         }
 
         function powerCycleDevice() {
-            if (selectedDeviceId && confirm(`Bạn có chắc muốn power cycle thiết bị ${selectedDeviceId}?\n\nThiết bị sẽ tạm ngắt nguồn 5 giây rồi bật lại.`)) {
+            if (selectedDeviceId && confirm(`Bạn có chắc muốn khởi động lại nguồn (5s) thiết bị ${selectedDeviceId}?\n\nThiết bị sẽ tạm ngắt nguồn 5 giây rồi bật lại.`)) {
                 publishCommand(selectedDeviceId, 'power_cycle');
-                showAlert(`Đã gửi lệnh power cycle thiết bị ${selectedDeviceId}`, 'success');
+                showAlert(`Đã gửi lệnh khởi động lại nguồn (5s) cho thiết bị ${selectedDeviceId}`, 'success');
             }
+        }
+
+        // Ngắt kết nối: bỏ chọn thiết bị và quay lại màn hình chào mừng
+        function disconnectSelectedDevice(){
+            if (!selectedDeviceId){ showAlert('Chưa chọn thiết bị để ngắt kết nối', 'error'); return; }
+            const devId = selectedDeviceId;
+            selectedDeviceId = null;
+            // Ẩn interface, hiện welcome
+            const welcome = document.getElementById('welcome-screen');
+            const iface = document.getElementById('bms-interface');
+            if (welcome) welcome.style.display = 'block';
+            if (iface) iface.classList.remove('active');
+            // Cập nhật danh sách và nút xóa
+            updateDeviceList();
+            updateRemoveButtonState();
+            // Trả Settings về placeholder
+            const se = document.getElementById('settings-empty');
+            const sc = document.getElementById('settings-content');
+            if (se && sc){ se.style.display = ''; sc.style.display = 'none'; }
+            showAlert(`Đã ngắt kết nối khỏi thiết bị ${devId}`, 'success');
         }
 
 
