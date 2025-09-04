@@ -1799,6 +1799,12 @@
 
 
     <script>
+        // Remove emoji/icons from all texts to keep a clean UI
+        document.addEventListener('DOMContentLoaded', () => {
+            const strip = s => s.replace(/[\u2190-\u21FF\u2300-\u23FF\u2600-\u27BF\u1F000-\u1FAFF]/g, '').replace(/\s{2,}/g,' ').trim();
+            const nodes = document.querySelectorAll('h1,h2,h3,button,.unit,.device-name,.device-info-small,label');
+            nodes.forEach(n=>{ if(n && n.textContent){ n.textContent = strip(n.textContent); } });
+        });
 
         // MQTT Configuration
 
