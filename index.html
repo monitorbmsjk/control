@@ -1320,7 +1320,7 @@
 
                         <button id="btn-recover" class="btn btn-primary" style="display:none;" onclick="openRecoverConfirm()">🔄 Khởi động lại BMS</button>
 
-                        <button class="btn btn-warning" onclick="restartDevice()">Chế độ thiết lập </button>
+                        <button class="btn btn-warning" onclick="enterSetupFromDashboard()">Chế độ thiết lập </button>
 
                         <button class="btn btn-info" onclick="powerCycleDevice()">⚡ Khởi động lại nguồn (5s)</button>
                         <button class="btn btn-success" onclick="disconnectSelectedDevice()">🔌 Ngắt kết nối</button>
@@ -2636,6 +2636,15 @@
 
             }
 
+        }
+
+        // Vào Setup Mode qua MQTT: xóa cấu hình trên thiết bị và restart vào AP
+        function enterSetupFromDashboard(){
+            if (!selectedDeviceId){ showAlert('Chưa chọn thiết bị', 'error'); return; }
+            if (confirm(`Thiết lập lại cấu hình và vào Setup Mode cho thiết bị ${selectedDeviceId}?\n\nThiết bị sẽ xoá WiFi/BLE đã lưu và phát AP ESP32-BMS-Setup.`)){
+                publishCommand(selectedDeviceId, 'enter_setup');
+                showAlert(`Đã gửi lệnh vào Setup Mode cho thiết bị ${selectedDeviceId}`, 'success');
+            }
         }
 
         function powerCycleDevice() {
