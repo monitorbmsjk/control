@@ -396,6 +396,8 @@
 
             padding-bottom: 10px;
 
+            text-align: center;
+
         }
 
 
@@ -624,6 +626,9 @@
             align-items: center;
 
             gap: 10px;
+
+            justify-content: center;
+            text-align: center;
 
         }
 
@@ -1029,16 +1034,16 @@
 
             <div class="sidebar-header">
 
-                <h2>🔧 BMS Dashboard</h2>
+                <h2> BMS Dashboard</h2>
 
                 <p>Quản lý ESP32 BMS</p>
 
                 <div class="device-management-buttons">
                     <button class="btn btn-primary" onclick="scanActiveDevices()">
-                        🔍 Scan thiết bị
+                         Scan thiết bị
                     </button>
                     <button class="btn btn-danger" onclick="removeSelectedDevice()" id="remove-device-btn" disabled>
-                        🗑️ Xóa thiết bị
+                         Xóa thiết bị
                     </button>
                 </div>
             </div>
@@ -1080,7 +1085,7 @@
 
             <div class="welcome-screen" id="welcome-screen">
 
-                <div class="welcome-icon">🔋</div>
+                <div class="welcome-icon"></div>
 
                 <h2>Chào mừng đến với BMS Dashboard</h2>
 
@@ -1112,7 +1117,7 @@
 
                     <div class="card">
 
-                        <h3>🔋 Thông tin chính</h3>
+                        <h3> Thông tin chính</h3>
 
                         <div class="value" id="battery-voltage">--</div>
 
@@ -1124,7 +1129,7 @@
 
                     <div class="card">
 
-                        <h3>⚡ Dòng điện</h3>
+                        <h3> Dòng điện</h3>
 
                         <div class="value" id="current">--</div>
 
@@ -1136,7 +1141,7 @@
 
                     <div class="card">
 
-                        <h3>📊 Mức sạc</h3>
+                        <h3> Mức sạc</h3>
 
                         <div class="value" id="soc">--</div>
 
@@ -1148,7 +1153,7 @@
 
                     <div class="card">
 
-                        <h3>💪 Công suất</h3>
+                        <h3> Công suất</h3>
 
                         <div class="value" id="power">--</div>
 
@@ -1166,7 +1171,7 @@
 
                     <div class="card">
 
-                        <h3>🌡️ Nhiệt độ</h3>
+                        <h3> Nhiệt độ</h3>
 
                         <div class="value" id="temp1">--</div>
 
@@ -1178,7 +1183,7 @@
 
                     <div class="card">
 
-                        <h3>🌡️ Nhiệt độ 2</h3>
+                        <h3> Nhiệt độ 2</h3>
 
                         <div class="value" id="temp2">--</div>
 
@@ -1190,7 +1195,7 @@
 
                     <div class="card">
 
-                        <h3>🔥 Nhiệt độ MOS</h3>
+                        <h3> Nhiệt độ MOS</h3>
 
                         <div class="value" id="temp-mos">--</div>
 
@@ -1202,7 +1207,7 @@
 
                     <div class="card">
 
-                        <h3>📈 Dung lượng</h3>
+                        <h3> Dung lượng</h3>
 
                         <div class="value" id="current-capacity">--</div>
 
@@ -1228,7 +1233,7 @@
 
                     <div class="card">
 
-                        <h3>🔋 Thông tin Cell</h3>
+                        <h3>Thông tin Cell</h3>
 
                         <div class="value" id="min-voltage">--</div>
 
@@ -1252,7 +1257,7 @@
 
                     <div class="card">
 
-                        <h3>⚡ Điện trở Cell</h3>
+                        <h3> Điện trở Cell</h3>
 
                         <div class="value" id="min-resistance">--</div>
 
@@ -1280,7 +1285,7 @@
 
                 <div class="card">
 
-                    <h3>🔋 Điện áp Cell</h3>
+                    <h3> Điện áp Cell</h3>
 
                     <div class="cell-grid" id="cell-grid">
 
@@ -1296,7 +1301,7 @@
 
                 <div class="card">
 
-                    <h3>⚡ Điện trở Cell</h3>
+                    <h3> Điện trở Cell</h3>
 
                     <div class="cell-grid" id="resistance-grid">
 
@@ -1312,18 +1317,18 @@
 
                 <div class="control-section">
 
-                    <h2>🛡️ Quản lý BMS</h2>
+                    <h2> Quản lý BMS</h2>
 
                     <div class="control-buttons">
 
-                        <button id="btn-emergency" class="btn btn-danger" onclick="openEmergencyConfirm()">🛑 Dừng khẩn cấp</button>
+                        <button id="btn-emergency" class="btn btn-danger" onclick="openEmergencyConfirm()"> Dừng khẩn cấp</button>
 
                         <button id="btn-recover" class="btn btn-primary" style="display:none;" onclick="openRecoverConfirm()">🔄 Khởi động lại BMS</button>
 
                         <button class="btn btn-warning" onclick="enterSetupFromDashboard()">Chế độ thiết lập </button>
 
-                        <button class="btn btn-info" onclick="powerCycleDevice()">⚡ Khởi động lại nguồn (5s)</button>
-                        <button class="btn btn-success" onclick="disconnectSelectedDevice()">🔌 Ngắt kết nối</button>
+                        <button class="btn btn-info" onclick="powerCycleDevice()"> Khởi động lại nguồn (5s)</button>
+                        <button class="btn btn-success" onclick="disconnectSelectedDevice()"> Ngắt kết nối</button>
 
                     </div>
 
@@ -1384,7 +1389,7 @@
             <div id="settings-tab" class="tab-content">
 
                 <div id="settings-empty" style="text-align:center; padding:60px 20px; color:#666; display: none;">
-                    <div style="font-size:48px; opacity:0.25;">🛠️</div>
+                    <div style="font-size:48px; opacity:0.25;"></div>
                     <h2 style="margin-top:10px; color:#333;">Chưa chọn thiết bị</h2>
                     <p>Chọn một thiết bị từ danh sách bên trái .</p>
                 </div>
@@ -1394,7 +1399,7 @@
                     <div class="card">
 
                         <div class="settings-section-header">
-                        <h3>⚡ Điện áp</h3>
+                        <h3> Điện áp</h3>
 
                         </div>
                         <div class="form-row">
@@ -1505,7 +1510,7 @@
                     <div class="card">
 
                         <div class="settings-section-header">
-                        <h3>⚡ Dòng điện</h3>
+                        <h3> Dòng điện</h3>
 
                         </div>
                         <div class="form-row">
@@ -1546,7 +1551,7 @@
                     <div class="card">
 
                         <div class="settings-section-header">
-                        <h3>⏱️ Thời gian & Độ trễ</h3>
+                        <h3> Thời gian & Độ trễ</h3>
 
                         </div>
                         <div class="form-row">
@@ -1629,7 +1634,7 @@
                     <div class="card">
 
                         <div class="settings-section-header">
-                        <h3>🌡️ Nhiệt độ</h3>
+                        <h3> Nhiệt độ</h3>
 
                         </div>
                         <div class="form-row">
@@ -1698,7 +1703,7 @@
                     <div class="card">
 
                         <div class="settings-section-header">
-                        <h3>🎚️ Công tắc điều khiển</h3>
+                        <h3> Công tắc điều khiển</h3>
 
                         </div>
 
@@ -1799,12 +1804,6 @@
 
 
     <script>
-        // Remove emoji/icons from all texts to keep a clean UI
-        document.addEventListener('DOMContentLoaded', () => {
-            const strip = s => s.replace(/[\u2190-\u21FF\u2300-\u23FF\u2600-\u27BF\u1F000-\u1FAFF]/g, '').replace(/\s{2,}/g,' ').trim();
-            const nodes = document.querySelectorAll('h1,h2,h3,button,.unit,.device-name,.device-info-small,label');
-            nodes.forEach(n=>{ if(n && n.textContent){ n.textContent = strip(n.textContent); } });
-        });
 
         // MQTT Configuration
 
