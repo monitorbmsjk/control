@@ -64,7 +64,7 @@
             color: #333;
             margin-bottom: 15px;
             font-size: 1.2em;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 1px solid #667eea;
             padding-bottom: 10px;
         }
 
@@ -78,6 +78,33 @@
         .unit {
             font-size: 0.8em;
             color: #666;
+        }
+
+        .info-section {
+            margin-bottom: 15px;
+        }
+        
+        .value {
+            padding-bottom: 4px;
+            margin-bottom: 0;
+        }
+        
+        .unit {
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .unit:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .separator {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 15px 0;
+            border-radius: 1px;
         }
 
         .status {
@@ -209,6 +236,31 @@
             margin: 5px 0;
         }
 
+        /* Device name styling */
+        .device-name {
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .device-label {
+            color: #E0E0E0;
+            font-weight: 500;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .device-name {
+                font-size: 14px;
+            }
+            .device-label {
+                font-size: 13px;
+            }
+        }
+
         /* Navigation Tabs */
         .nav-tabs {
             display: flex;
@@ -286,7 +338,7 @@
             color: #333;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 1px solid #667eea;
         }
 
         .input-with-button {
@@ -512,20 +564,7 @@
     </style>
 </head>
 <body>
-    <!-- Global Password Overlay -->
-    <div id="global-password-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-        <div style="background: rgba(255,255,255,0.95); border-radius: 15px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%;">
-            <h2 style="color: #333; margin-bottom: 20px; font-size: 1.8em;">🔒 JK BMS</h2>
-            <p style="color: #666; margin-bottom: 30px; font-size: 1.1em;">Vui lòng nhập mật khẩu để truy cập</p>
-            <div style="margin-bottom: 20px;">
-                <input type="password" id="global-password-input" placeholder="Mật khẩu" style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; box-sizing: border-box;" />
-            </div>
-            <button onclick="checkGlobalPassword()" style="background: #667eea; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;">Truy cập</button>
-            <div id="global-password-error" style="margin-top: 15px; color: #f44336; font-weight: bold; display: none;"></div>
-        </div>
-    </div>
-
-    <div class="container" id="main-content" style="display: none;">
+    <div class="container" id="main-content">
         <div class="header">
             <div style="position: relative;">
                 <div style="position: absolute; top: 0; right: 0;">
@@ -554,8 +593,8 @@
             <div class="status" id="balance-status">Không cân bằng</div>
             <div class="status" id="ip-address">IP: --</div>
             <div style="margin-top: 10px;">
-                <label style="color: white; margin-right: 10px;">Thiết bị:</label>
-                <span id="device-name-display" style="color: #4CAF50; font-weight: bold; font-size: 14px;">esp32_001</span>
+                <label class="device-label" id="device-label">Thiết bị:</label>
+                <span id="device-name-display" class="device-name">esp32_001</span>
             </div>
         </div>
 
@@ -565,14 +604,34 @@
             <!-- Thông tin chính -->
             <div class="card">
                 <h3>📊 Thông tin chính</h3>
+                
+                <!-- Điện áp và SOC -->
+                <div class="info-section">
                 <div class="value" id="battery-voltage">--</div>
                 <div class="unit">Điện áp (V)</div>
-                <div class="value" id="current">--</div>
-                <div class="unit">Dòng điện (A)</div>
                 <div class="value" id="soc">--</div>
                 <div class="unit">Phần trăm pin (%)</div>
+                </div>
+                
+                <div class="separator"></div>
+                
+                <!-- Dòng điện và công suất -->
+                <div class="info-section">
+                    <div class="value" id="current">--</div>
+                    <div class="unit">Dòng điện (A)</div>
                 <div class="value" id="power">--</div>
                 <div class="unit">Công suất (W)</div>
+                </div>
+                
+                <div class="separator"></div>
+                
+                <!-- Dung lượng -->
+                <div class="info-section">
+                    <div class="value" id="current-capacity">--</div>
+                    <div class="unit" id="current-capacity-unit">Dung lượng hiện tại (Ah)</div>
+                    <div class="value" id="total-capacity">--</div>
+                    <div class="unit" id="total-capacity-unit">Dung lượng tối đa (Ah)</div>
+                </div>
             </div>
 
             <!-- Nhiệt độ -->
@@ -598,25 +657,15 @@
                 <div class="value" id="delta-voltage">--</div>
                 <div class="unit">Điện áp chênh lệch (V)</div>
                 <div class="value" id="min-resistance">--</div>
-                <div class="unit">Điện trở thấp nhất (mΩ)</div>
+                <div class="unit" id="min-resistance-unit">Điện trở thấp nhất (mΩ)</div>
                 <div class="value" id="max-resistance">--</div>
-                <div class="unit">Điện trở cao nhất (mΩ)</div>
+                <div class="unit" id="max-resistance-unit">Điện trở cao nhất (mΩ)</div>
                 <div class="value" id="avg-resistance">--</div>
-                <div class="unit">Điện trở trung bình (mΩ)</div>
+                <div class="unit" id="avg-resistance-unit">Điện trở trung bình (mΩ)</div>
                 <div class="value" id="delta-resistance">--</div>
-                <div class="unit">Điện trở chênh lệch (mΩ)</div>
+                <div class="unit" id="delta-resistance-unit">Điện trở chênh lệch (mΩ)</div>
             </div>
 
-            <!-- Thông tin dung lượng -->
-            <div class="card">
-                <h3> Dung lượng</h3>
-                <div class="value" id="current-capacity">--</div>
-                <div class="unit">Dung lượng hiện tại (Ah)</div>
-                <div class="value" id="total-capacity">--</div>
-                <div class="unit">Tổng dung lượng (Ah)</div>
-                <div class="value" id="charge-cycles">--</div>
-                <div class="unit">Số lần sạc</div>
-            </div>
         </div>
 
         <!-- Cell Voltages -->
@@ -639,10 +688,10 @@
         <div class="card">
             <h3>🛡️ Quản lý BMS</h3>
             <div class="controls">
-                <button id="btn-emergency" class="btn btn-danger" onclick="openEmergencyConfirm()">🛑 Dừng khẩn cấp</button>
-                <button id="btn-recover" class="btn btn-primary" style="display:none;" onclick="openRecoverConfirm()">🔄 Khởi động lại BMS</button>
-                <button class="btn btn-warning" onclick="enterSetupMode()">⚙️ Chế độ thiết lập</button>
-                <button class="btn btn-info" onclick="powerCycleDevice()">⚡ Power Cycle</button>
+                <button id="btn-emergency" class="btn btn-danger" onclick="openEmergencyConfirm()">🛑 <span id="emergency-text">Dừng khẩn cấp</span></button>
+                <button id="btn-recover" class="btn btn-primary" style="display:none;" onclick="openRecoverConfirm()">🔄 <span id="recover-text">Khởi động lại BMS</span></button>
+                <button class="btn btn-warning" onclick="enterSetupMode()">⚙️ <span id="setup-text">Chế độ thiết lập</span></button>
+                <button class="btn btn-info" onclick="powerCycleDevice()">⚡ <span id="power-cycle-text">Khởi động lại nguồn (5s)</span></button>
             </div>
         </div>
 
@@ -664,22 +713,22 @@
                 <h3 style="margin-bottom:10px;">Khởi động lại BMS</h3>
                 <p style="color:#555;">Chọn trạng thái cần phục hồi. Mặc định khôi phục theo trước khi dừng khẩn cấp.</p>
                 <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                    <label>Charge MOSFET
+                    <label>MOSFET sạc
                         <label class="switch" style="margin-left:8px;">
                             <input id="rcv-charge" type="checkbox"><span class="slider"></span>
                         </label>
                     </label>
-                    <label>Discharge MOSFET
+                    <label>MOSFET xả
                         <label class="switch" style="margin-left:8px;">
                             <input id="rcv-discharge" type="checkbox"><span class="slider"></span>
                         </label>
                     </label>
-                    <label>Balancer
+                    <label>Bộ cân bằng
                         <label class="switch" style="margin-left:8px;">
                             <input id="rcv-balancer" type="checkbox"><span class="slider"></span>
                         </label>
                     </label>
-                    <label>Heating
+                    <label>Sưởi ấm
                         <label class="switch" style="margin-left:8px;">
                             <input id="rcv-heating" type="checkbox"><span class="slider"></span>
                         </label>
@@ -694,9 +743,9 @@
 
         <!-- Cảnh báo -->
         <div class="card">
-            <h3> Cảnh báo</h3>
+            <h3 id="alerts-title"> Cảnh báo</h3>
             <div class="alerts" id="alerts">
-                <div class="alert">Không có cảnh báo</div>
+                <div class="alert" id="no-alerts-text">Không có cảnh báo</div>
             </div>
         </div>
         </div>
@@ -1281,7 +1330,6 @@
         }
         let autoRefresh = true;
         let refreshInterval;
-        let globalPasswordUnlocked = false;
 
         // MQTT Configuration
         const mqttConfig = {
@@ -1310,26 +1358,7 @@
             }
         }
 
-        // Global password functions
-        function checkGlobalPassword() {
-            const password = document.getElementById('global-password-input').value;
-            const errorDiv = document.getElementById('global-password-error');
-            const currentLang = localStorage.getItem('language') || 'vi';
-            const t = translations[currentLang];
-            
-            if (password === 'matkhaucap1') {
-                globalPasswordUnlocked = true;
-                document.getElementById('global-password-overlay').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                // Start the normal initialization
-                initializeApp();
-            } else {
-                errorDiv.textContent = t.global_password_error;
-                errorDiv.style.display = 'block';
-                document.getElementById('global-password-input').value = '';
-                document.getElementById('global-password-input').focus();
-            }
-        }
+
 
         // Handle Enter key in password input and initialize global password overlay
         document.addEventListener('DOMContentLoaded', function() {
@@ -1342,33 +1371,8 @@
             // Update device name display
             updateDeviceNameDisplay();
             
-            // Setup password input
-            const passwordInput = document.getElementById('global-password-input');
-            if (passwordInput) {
-                passwordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        checkGlobalPassword();
-                    }
-                });
-                passwordInput.focus();
-                
-                // Apply language to global password overlay immediately
-                const currentLang = localStorage.getItem('language') || 'vi';
-                const t = translations[currentLang];
-                const globalOverlay = document.getElementById('global-password-overlay');
-                if (globalOverlay) {
-                    const overlayTitle = globalOverlay.querySelector('h2');
-                    if (overlayTitle) overlayTitle.textContent = t.global_password_title;
-                    
-                    const overlayMessage = globalOverlay.querySelector('p');
-                    if (overlayMessage) overlayMessage.textContent = t.global_password_message;
-                    
-                    if (passwordInput) passwordInput.placeholder = t.global_password_placeholder;
-                    
-                    const accessBtn = globalOverlay.querySelector('button');
-                    if (accessBtn) accessBtn.textContent = t.global_password_button;
-                }
-            }
+            // Initialize app immediately (no password required)
+            initializeApp();
             
             // Setup settings if already unlocked
             if (settingsUnlocked()) {
@@ -1388,7 +1392,9 @@
         // MQTT Connection
         function connectMQTT() {
             try {
+                console.log('🔌 Attempting MQTT connection...');
                 const url = `wss://${mqttConfig.host}:${mqttConfig.port}${mqttConfig.path}`;
+                console.log('🌐 MQTT URL:', url);
                 
                 mqttClient = mqtt.connect(url, {
                     clientId: mqttConfig.clientId,
@@ -1399,18 +1405,21 @@
                 });
 
                 mqttClient.on('connect', () => {
-                    console.log('MQTT kết nối thành công!');
+                    console.log('✅ MQTT kết nối thành công!');
                     updateConnectionStatus(true);
                     reconnectAttempts = 0;
                     
                     // Subscribe to BMS topics
+                    console.log('📡 Subscribing to topics...');
                     mqttClient.subscribe(`bms/${selectedDeviceId}/data`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/status`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/online`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/settings`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/switches`);
+                    console.log('📡 Subscribed to all topics for device:', selectedDeviceId);
                     
                     // Request data from device
+                    console.log('📤 Requesting data from device...');
                     requestData();
                 });
 
@@ -1442,17 +1451,21 @@
         // Handle MQTT Messages
         function handleMQTTMessage(topic, message) {
             try {
+                console.log(`📨 Received MQTT: ${topic} -> ${message.substring(0, 100)}...`);
                 const topicParts = topic.split('/');
                 const deviceId = topicParts[1];
                 const messageType = topicParts[2];
 
-                console.log(`Received MQTT: ${topic} -> ${message}`);
+                console.log(`🔍 Parsed topic - Device: ${deviceId}, Type: ${messageType}`);
 
                 if (deviceId === selectedDeviceId) {
+                    console.log(`✅ Processing message for selected device: ${selectedDeviceId}`);
                     switch (messageType) {
                         case 'data':
+                            console.log('📊 Processing data message...');
                             const data = JSON.parse(message);
-                            updateUI(data);
+                            console.log('📊 Data received:', data);
+                updateUI(data);
                             break;
                         case 'status':
                             const status = JSON.parse(message);
@@ -1480,8 +1493,11 @@
         function requestData() {
             if (mqttClient && mqttClient.connected) {
                 const topic = `bms/${selectedDeviceId}/cmd/action`;
+                console.log(`📤 Publishing get_data command to: ${topic}`);
                 mqttClient.publish(topic, 'get_data', { qos: 1 });
-                console.log(`Đã gửi lệnh get_data tới ${topic}`);
+                console.log(`✅ Đã gửi lệnh get_data tới ${topic}`);
+            } else {
+                console.log('❌ MQTT client not connected, cannot request data');
             }
         }
 
@@ -1500,57 +1516,61 @@
 
         // Update device status
         function updateDeviceStatus(status) {
+            console.log('📡 Updating device status:', status);
             // Update IP address if available
             if (status.wifi_ssid) {
                 document.getElementById('ip-address').textContent = `WiFi: ${status.wifi_ssid}`;
+            }
+            if (status.ip_address) {
+                document.getElementById('ip-address').textContent = `IP: ${status.ip_address}`;
             }
         }
 
         // Update settings UI
         function updateSettingsUI(settings) {
-            // Voltages
-            document.getElementById('cell-overvoltage').value = settings.cell_overvoltage ?? '';
-            document.getElementById('cell-overvoltage-recovery').value = settings.cell_overvoltage_recovery ?? '';
-            document.getElementById('cell-undervoltage').value = settings.cell_undervoltage ?? '';
-            document.getElementById('cell-undervoltage-recovery').value = settings.cell_undervoltage_recovery ?? '';
-            document.getElementById('balance-trigger-voltage').value = settings.balance_trigger_voltage ?? '';
-            document.getElementById('balance-start-voltage').value = settings.balance_start_voltage ?? '';
-            document.getElementById('cell-soc100-voltage').value = settings.cell_soc100_voltage ?? '';
-            document.getElementById('cell-soc0-voltage').value = settings.cell_soc0_voltage ?? '';
-            document.getElementById('cell-request-charge-voltage').value = settings.cell_request_charge_voltage ?? '';
-            document.getElementById('cell-request-float-voltage').value = settings.cell_request_float_voltage ?? '';
-            document.getElementById('smart-sleep-voltage').value = settings.smart_sleep_voltage ?? '';
-            document.getElementById('power-off-voltage').value = settings.power_off_voltage ?? '';
-            document.getElementById('cell-count').value = settings.cell_count ?? '';
-            document.getElementById('capacity').value = settings.capacity ?? '';
+            // Voltages với giá trị mặc định
+            document.getElementById('cell-overvoltage').value = settings.cell_overvoltage ?? '3.650';
+            document.getElementById('cell-overvoltage-recovery').value = settings.cell_overvoltage_recovery ?? '3.500';
+            document.getElementById('cell-undervoltage').value = settings.cell_undervoltage ?? '3.000';
+            document.getElementById('cell-undervoltage-recovery').value = settings.cell_undervoltage_recovery ?? '3.100';
+            document.getElementById('balance-trigger-voltage').value = settings.balance_trigger_voltage ?? '3.400';
+            document.getElementById('balance-start-voltage').value = settings.balance_start_voltage ?? '3.350';
+            document.getElementById('cell-soc100-voltage').value = settings.cell_soc100_voltage ?? '3.600';
+            document.getElementById('cell-soc0-voltage').value = settings.cell_soc0_voltage ?? '3.000';
+            document.getElementById('cell-request-charge-voltage').value = settings.cell_request_charge_voltage ?? '3.400';
+            document.getElementById('cell-request-float-voltage').value = settings.cell_request_float_voltage ?? '3.350';
+            document.getElementById('smart-sleep-voltage').value = settings.smart_sleep_voltage ?? '3.200';
+            document.getElementById('power-off-voltage').value = settings.power_off_voltage ?? '2.800';
+            document.getElementById('cell-count').value = settings.cell_count ?? '16';
+            document.getElementById('capacity').value = settings.capacity ?? '280.0';
             
-            // Currents/calibration
-            document.getElementById('max-balance-current').value = settings.max_balance_current ?? '';
-            document.getElementById('charge-current').value = settings.charge_current ?? '';
-            document.getElementById('discharge-current').value = settings.discharge_current ?? '';
-            document.getElementById('current-calibration').value = settings.current_calibration ?? '';
+            // Currents/calibration với giá trị mặc định
+            document.getElementById('max-balance-current').value = settings.max_balance_current ?? '0.080';
+            document.getElementById('charge-current').value = settings.charge_current ?? '50.0';
+            document.getElementById('discharge-current').value = settings.discharge_current ?? '50.0';
+            document.getElementById('current-calibration').value = settings.current_calibration ?? '0.0';
             
-            // Times
-            document.getElementById('charge-ocp-delay-s').value = settings.charge_ocp_delay_s ?? '';
-            document.getElementById('charge-ocpr-time-s').value = settings.charge_ocpr_time_s ?? '';
-            document.getElementById('discharge-ocp-delay-s').value = settings.discharge_ocp_delay_s ?? '';
-            document.getElementById('discharge-ocpr-time-s').value = settings.discharge_ocpr_time_s ?? '';
-            document.getElementById('scp-delay-us').value = settings.scp_delay_us ?? '';
-            document.getElementById('scp-recovery-time-s').value = settings.scp_recovery_time_s ?? '';
-            document.getElementById('request-charge-voltage-time-h').value = settings.request_charge_voltage_time_h ?? '';
-            document.getElementById('request-float-voltage-time-h').value = settings.request_float_voltage_time_h ?? '';
-            document.getElementById('discharge-precharge-time-s').value = settings.discharge_precharge_time_s ?? '';
-            document.getElementById('voltage-calibration').value = settings.voltage_calibration ?? '';
+            // Times với giá trị mặc định
+            document.getElementById('charge-ocp-delay-s').value = settings.charge_ocp_delay_s ?? '10';
+            document.getElementById('charge-ocpr-time-s').value = settings.charge_ocpr_time_s ?? '10';
+            document.getElementById('discharge-ocp-delay-s').value = settings.discharge_ocp_delay_s ?? '10';
+            document.getElementById('discharge-ocpr-time-s').value = settings.discharge_ocpr_time_s ?? '10';
+            document.getElementById('scp-delay-us').value = settings.scp_delay_us ?? '1000';
+            document.getElementById('scp-recovery-time-s').value = settings.scp_recovery_time_s ?? '10';
+            document.getElementById('request-charge-voltage-time-h').value = settings.request_charge_voltage_time_h ?? '1';
+            document.getElementById('request-float-voltage-time-h').value = settings.request_float_voltage_time_h ?? '1';
+            document.getElementById('discharge-precharge-time-s').value = settings.discharge_precharge_time_s ?? '5';
+            document.getElementById('voltage-calibration').value = settings.voltage_calibration ?? '0.0';
             
-            // Temps
-            document.getElementById('charge-overtemp').value = settings.charge_overtemp ?? '';
-            document.getElementById('charge-overtemp-recovery').value = settings.charge_overtemp_recovery ?? '';
-            document.getElementById('discharge-overtemp').value = settings.discharge_overtemp ?? '';
-            document.getElementById('discharge-overtemp-recovery').value = settings.discharge_overtemp_recovery ?? '';
-            document.getElementById('charge-undertemp').value = settings.charge_undertemp ?? '';
-            document.getElementById('charge-undertemp-recovery').value = settings.charge_undertemp_recovery ?? '';
-            document.getElementById('mos-overtemp').value = settings.mos_overtemp ?? '';
-            document.getElementById('mos-overtemp-recovery').value = settings.mos_overtemp_recovery ?? '';
+            // Temps với giá trị mặc định
+            document.getElementById('charge-overtemp').value = settings.charge_overtemp ?? '60';
+            document.getElementById('charge-overtemp-recovery').value = settings.charge_overtemp_recovery ?? '50';
+            document.getElementById('discharge-overtemp').value = settings.discharge_overtemp ?? '70';
+            document.getElementById('discharge-overtemp-recovery').value = settings.discharge_overtemp_recovery ?? '60';
+            document.getElementById('charge-undertemp').value = settings.charge_undertemp ?? '-10';
+            document.getElementById('charge-undertemp-recovery').value = settings.charge_undertemp_recovery ?? '0';
+            document.getElementById('mos-overtemp').value = settings.mos_overtemp ?? '80';
+            document.getElementById('mos-overtemp-recovery').value = settings.mos_overtemp_recovery ?? '70';
             
             console.log('Settings UI updated from MQTT');
         }
@@ -1579,6 +1599,9 @@
 
         // Cập nhật UI
         function updateUI(data) {
+            console.log('🎨 Updating UI with data:', data);
+            console.log('🔍 Data fields available:', Object.keys(data));
+            console.log('📊 Key values - v:', data.v, 'i:', data.i, 'soc:', data.soc, 'p:', data.p);
             // Cập nhật trạng thái kết nối (MQTT data không có trường connected)
             updateConnectionStatus(true);
 
@@ -1588,30 +1611,65 @@
             }
 
             // Cập nhật thông tin chính
-            document.getElementById('battery-voltage').textContent = data.battery_voltage || '--';
-            document.getElementById('current').textContent = data.current || '--';
-            document.getElementById('soc').textContent = data.soc || '--';
-            document.getElementById('power').textContent = data.power || '--';
+            const voltageEl = document.getElementById('battery-voltage');
+            const currentEl = document.getElementById('current');
+            const socEl = document.getElementById('soc');
+            const powerEl = document.getElementById('power');
+            
+            console.log('🔍 Elements found:', {
+                voltage: !!voltageEl,
+                current: !!currentEl,
+                soc: !!socEl,
+                power: !!powerEl
+            });
+            
+            if (voltageEl) voltageEl.textContent = data.v || '--';
+            if (currentEl) currentEl.textContent = data.i || '--';
+            if (socEl) socEl.textContent = data.soc || '--';
+            if (powerEl) powerEl.textContent = data.p || '--';
+            
+            // Cập nhật dung lượng trong card thông tin chính
+            const currentCapacityEl = document.getElementById('current-capacity');
+            const totalCapacityEl = document.getElementById('total-capacity');
+            if (currentCapacityEl) currentCapacityEl.textContent = (data.cap_cur ?? '--') === '--' ? '--' : (+data.cap_cur).toFixed(2);
+            if (totalCapacityEl) totalCapacityEl.textContent = (data.cap_tot ?? '--') === '--' ? '--' : (+data.cap_tot).toFixed(2);
+            
+            console.log('✅ Updated main values:', {
+                voltage: data.v,
+                current: data.i,
+                soc: data.soc,
+                power: data.p,
+                currentCapacity: data.cap_cur,
+                totalCapacity: data.cap_tot
+            });
 
             // Cập nhật nhiệt độ
-            document.getElementById('temp1').textContent = data.temp1 || '--';
-            document.getElementById('temp2').textContent = data.temp2 || '--';
+            document.getElementById('temp1').textContent = data.t1 || '--';
+            document.getElementById('temp2').textContent = data.t2 || '--';
             document.getElementById('temp-mos').textContent = data.temp_mos || '--';
 
-            // Cập nhật thông tin cell
-            document.getElementById('min-voltage').textContent = data.min_voltage || '--';
-            document.getElementById('max-voltage').textContent = data.max_voltage || '--';
-            document.getElementById('avg-voltage').textContent = data.avg_voltage || '--';
-            document.getElementById('delta-voltage').textContent = data.delta_voltage || '--';
+            // Cập nhật thông tin cell (min_v, max_v, avg_v đã là Volt)
+            console.log('🔋 Cell voltage summary:', {
+                min_v: data.min_v,
+                max_v: data.max_v,
+                avg_v: data.avg_v,
+                delta_voltage: data.delta_voltage
+            });
+            document.getElementById('min-voltage').textContent = data.min_v ? data.min_v.toFixed(3) : '--';
+            document.getElementById('max-voltage').textContent = data.max_v ? data.max_v.toFixed(3) : '--';
+            document.getElementById('avg-voltage').textContent = data.avg_v ? data.avg_v.toFixed(3) : '--';
+            
+            // Tính delta voltage từ max - min
+            const deltaV = (typeof data.min_v === 'number' && typeof data.max_v === 'number') ? (data.max_v - data.min_v) : undefined;
+            document.getElementById('delta-voltage').textContent = (typeof deltaV === 'number') ? deltaV.toFixed(3) : '--';
 
-            // Cập nhật dung lượng
-            document.getElementById('current-capacity').textContent = data.current_capacity || '--';
-            document.getElementById('total-capacity').textContent = data.total_capacity || '--';
-            document.getElementById('charge-cycles').textContent = data.charge_cycles || '--';
 
             // Cập nhật cell voltages
-            updateCellVoltages(data.cell_voltages || []);
+            console.log('🔋 Cell voltages data (cv):', data.cv);
+            console.log('🔋 Cell voltages converted to V:', data.cv ? data.cv.map(v => (v/1000).toFixed(3)) : 'No data');
+            updateCellVoltages(data.cv || []);
             // Cập nhật cell resistances
+            console.log('⚡ Cell resistances data (cr):', data.cr);
             updateCellResistances(data);
 
             // Cập nhật trạng thái
@@ -1632,14 +1690,17 @@
                 status.className = 'status offline';
             }
             
-            // Cập nhật IP address
-            const ipElement = document.getElementById('ip-address');
-            ipElement.textContent = 'IP: ' + window.location.hostname;
+            // IP address sẽ được cập nhật từ MQTT status message
         }
 
         // Cập nhật cell voltages
         function updateCellVoltages(cellVoltages) {
+            console.log('🔋 Updating cell voltages:', cellVoltages);
             const grid = document.getElementById('cell-grid');
+            if (!grid) {
+                console.log('❌ Cell grid element not found');
+                return;
+            }
             grid.innerHTML = '';
 
             cellVoltages.forEach((voltage, index) => {
@@ -1647,14 +1708,15 @@
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     
-                    // Thêm class dựa trên voltage
-                    if (voltage > 3.65) cell.classList.add('voltage-high');
-                    else if (voltage < 3.0) cell.classList.add('voltage-low');
+                    // Thêm class dựa trên voltage (chuyển đổi từ mV sang V)
+                    const voltageV = voltage / 1000;
+                    if (voltageV > 3.65) cell.classList.add('voltage-high');
+                    else if (voltageV < 3.0) cell.classList.add('voltage-low');
                     else cell.classList.add('active');
 
                     cell.innerHTML = `
                         <div class="cell-number">Cell ${index + 1}</div>
-                        <div class="cell-value">${voltage.toFixed(3)}V</div>
+                        <div class="cell-value">${(voltage / 1000).toFixed(3)}V</div>
                     `;
                     grid.appendChild(cell);
                 }
@@ -1663,14 +1725,23 @@
 
         // Cập nhật cell resistances
         function updateCellResistances(data) {
+            console.log('⚡ Updating cell resistances with data:', data);
             const grid = document.getElementById('res-grid');
-            if (!grid) return;
+            if (!grid) {
+                console.log('❌ Resistance grid element not found');
+                return;
+            }
             grid.innerHTML = '';
-            const resistances = data.cell_resistances || [];
-            const minR = data.min_resistance;
-            const maxR = data.max_resistance;
-            const avgR = data.avg_resistance;
-            const deltaR = data.delta_resistance;
+            const resistances = data.cr || [];
+            console.log('⚡ Cell resistances array:', resistances);
+            const minR = data.min_r;
+            const maxR = data.max_r;
+            const avgR = data.avg_r;
+            
+            // Tính delta resistance từ max - min (như dashboard.html)
+            const deltaR = (typeof data.delta_r === 'number') ? data.delta_r : ((minR != null && maxR != null) ? (maxR - minR) : undefined);
+            
+            console.log('⚡ Resistance values:', { minR, maxR, avgR, deltaR });
 
             // Cập nhật các giá trị tổng quan
             const minEl = document.getElementById('min-resistance');
@@ -1698,27 +1769,36 @@
 
         // Cập nhật trạng thái
         function updateStatus(data) {
+            console.log('📊 Updating status with data:', {
+                chg: data.chg,
+                dchg: data.dchg,
+                bal: data.bal
+            });
             const chargeStatus = document.getElementById('charge-status');
             const balanceStatus = document.getElementById('balance-status');
 
             // Trạng thái sạc
-            if (data.charging) {
-                chargeStatus.textContent = '🔌 Đang sạc';
+            const langSelector = document.getElementById('language-selector');
+            const currentLang = langSelector ? langSelector.value : 'vi';
+            const t = translations[currentLang] || translations['vi'];
+            
+            if (data.chg) {
+                chargeStatus.textContent = t.charging;
                 chargeStatus.className = 'status charging';
-            } else if (data.discharging) {
-                chargeStatus.textContent = '⚡ Đang xả';
+            } else if (data.dchg) {
+                chargeStatus.textContent = t.discharging;
                 chargeStatus.className = 'status discharging';
             } else {
-                chargeStatus.textContent = '⏸️ Không sạc';
+                chargeStatus.textContent = t.not_charging_status;
                 chargeStatus.className = 'status';
             }
 
             // Trạng thái cân bằng
-            if (data.balancing) {
-                balanceStatus.textContent = '⚖️ Đang cân bằng';
+            if (data.bal) {
+                balanceStatus.textContent = t.balancing;
                 balanceStatus.className = 'status balancing';
             } else {
-                balanceStatus.textContent = '⏸️ Không cân bằng';
+                balanceStatus.textContent = t.not_balancing_status;
                 balanceStatus.className = 'status';
             }
         }
@@ -1726,8 +1806,12 @@
         // Cập nhật cảnh báo
         function updateAlerts(alerts) {
             const alertsContainer = document.getElementById('alerts');
+            const langSelector = document.getElementById('language-selector');
+            const currentLang = langSelector ? langSelector.value : 'vi';
+            const t = translations[currentLang] || translations['vi'];
+            
             if (alerts.length === 0) {
-                alertsContainer.innerHTML = '<div class="alert">Không có cảnh báo</div>';
+                alertsContainer.innerHTML = `<div class="alert">${t.no_alerts}</div>`;
             } else {
                 alertsContainer.innerHTML = alerts.map(alert => 
                     `<div class="alert">⚠️ ${alert}</div>`
@@ -1786,15 +1870,19 @@
         // Preload recover modal with snapshot
         async function preloadRecoverToggles(){
             try{
-                const res = await fetch('/api/emergency-state');
-                const st = await res.json();
-                if (st && st.previous){
-                const setc=(id,v)=>{ const el=document.getElementById(id); if(el) el.checked=!!v; };
-                    setc('rcv-charge', st.previous.charge_mosfet_on);
-                    setc('rcv-discharge', st.previous.discharge_mosfet_on);
-                    setc('rcv-balancer', st.previous.balancer_on);
-                    setc('rcv-heating', st.previous.heating_on);
-                }
+                // Sử dụng dữ liệu switches hiện tại từ MQTT
+                    const setc=(id,v)=>{ const el=document.getElementById(id); if(el) el.checked=!!v; };
+                
+                // Lấy dữ liệu từ các toggle hiện tại
+                const chargeEl = document.getElementById('charge-mosfet');
+                const dischargeEl = document.getElementById('discharge-mosfet');
+                const balancerEl = document.getElementById('balancer');
+                const heatingEl = document.getElementById('heating');
+                
+                if (chargeEl) setc('rcv-charge', chargeEl.checked);
+                if (dischargeEl) setc('rcv-discharge', dischargeEl.checked);
+                if (balancerEl) setc('rcv-balancer', balancerEl.checked);
+                if (heatingEl) setc('rcv-heating', heatingEl.checked);
             }catch(e){ /* ignore */ }
         }
 
@@ -1810,8 +1898,8 @@
                 if (mqttClient && mqttClient.connected) {
                     const topic = `bms/${selectedDeviceId}/cmd/switches`;
                     mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 });
-                setEmergencyButtons(false);
-                closeRecoverConfirm();
+                    setEmergencyButtons(false);
+                    closeRecoverConfirm();
                     alert('Đã gửi lệnh khôi phục BMS qua MQTT');
                 } else {
                     alert('MQTT chưa kết nối');
@@ -1907,12 +1995,16 @@
                     console.log('Đã gửi lệnh get_settings qua MQTT');
                 } else {
                     console.log('MQTT chưa kết nối, không thể load settings');
+                    // Hiển thị giá trị mặc định khi không có MQTT
+                    updateSettingsUI({});
                 }
             } catch(e){ 
                 const lang = localStorage.getItem('language') || 'vi';
                 const t = translations[lang];
                 const msgEl = document.getElementById('settings-msg');
                 if (msgEl){ msgEl.style.color = '#f44336'; msgEl.textContent = t.load_settings_error; }
+                // Hiển thị giá trị mặc định khi có lỗi
+                updateSettingsUI({});
             }
             await loadSwitches();
         }
@@ -1963,6 +2055,43 @@
             setTimeout(() => msgEl.textContent = '', 2000);
         }
 
+        // Hiển thị thông báo chung
+        function showAlert(message, type = 'info') {
+            const colors = {
+                'success': '#4CAF50',
+                'error': '#f44336',
+                'warning': '#ff9800',
+                'info': '#2196F3'
+            };
+            
+            // Tạo thông báo tạm thời
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${colors[type] || colors.info};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: bold;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Tự động xóa sau 3 giây
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 3000);
+        }
+
         // Lưu công tắc khi thay đổi
         async function saveSwitch(switchKey, elementId) {
             const value = document.getElementById(elementId).checked;
@@ -1971,19 +2100,15 @@
             switchData[switchKey] = value;
 
             try {
-                const response = await fetch('/api/switches', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(switchData)
-                });
-
-                if (response.ok) {
-                    showSettingsMessage('Đã lưu công tắc!', 'success');
+                if (mqttClient && mqttClient.connected) {
+                    const topic = `bms/${selectedDeviceId}/cmd/switches`;
+                    mqttClient.publish(topic, JSON.stringify(switchData), { qos: 1 });
+                    showSettingsMessage('Đã gửi công tắc qua MQTT!', 'success');
                 } else {
-                    showSettingsMessage('Lỗi khi lưu công tắc!', 'error');
+                    showSettingsMessage('MQTT chưa kết nối!', 'error');
                 }
             } catch (e) {
-                showSettingsMessage('Lỗi kết nối!', 'error');
+                showSettingsMessage('Lỗi kết nối MQTT!', 'error');
             }
         }
 
@@ -2053,6 +2178,7 @@
                 connecting: "Đang kết nối...",
                 not_charging: "Không sạc",
                 not_balancing: "Không cân bằng",
+                device: "Thiết bị:",
                 main_info: "📊 Thông tin chính",
                 voltage: "Điện áp (V)",
                 current: "Dòng điện (A)",
@@ -2068,14 +2194,20 @@
                 avg_voltage: "Điện áp trung bình (V)",
                 delta_voltage: "Điện áp chênh lệch (V)",
                 capacity: "📈 Dung lượng",
+                min_resistance: "Điện trở thấp nhất (mΩ)",
+                max_resistance: "Điện trở cao nhất (mΩ)",
+                avg_resistance: "Điện trở trung bình (mΩ)",
+                delta_resistance: "Điện trở chênh lệch (mΩ)",
                 current_capacity: "Dung lượng hiện tại (Ah)",
-                total_capacity: "Tổng dung lượng (Ah)",
+                total_capacity: "Dung lượng tối đa (Ah)",
                 charge_cycles: "Số lần sạc",
                 cell_voltages: "⚡ Điện áp Cell",
                 cell_resistances: "⚡ Điện trở Cell",
                 esp32_control: "Điều khiển BMS",
                 emergency_stop: "Dừng khẩn cấp",
                 setup_mode: "Chế độ thiết lập",
+                power_cycle: "Khởi động lại nguồn (5s)",
+                recover_bms: "Khởi động lại BMS",
 
                 alerts: "⚠️ Cảnh báo",
                 no_alerts: "Không có cảnh báo",
@@ -2214,6 +2346,7 @@
                 connecting: "Connecting...",
                 not_charging: "Not Charging",
                 not_balancing: "Not Balancing",
+                device: "Device:",
                 main_info: "📊 Main Information",
                 voltage: "Voltage (V)",
                 current: "Current (A)",
@@ -2229,14 +2362,20 @@
                 avg_voltage: "Average Voltage (V)",
                 delta_voltage: "Voltage Difference (V)",
                 capacity: "📈 Capacity",
+                min_resistance: "Minimum Resistance (mΩ)",
+                max_resistance: "Maximum Resistance (mΩ)",
+                avg_resistance: "Average Resistance (mΩ)",
+                delta_resistance: "Resistance Difference (mΩ)",
                 current_capacity: "Current Capacity (Ah)",
-                total_capacity: "Total Capacity (Ah)",
+                total_capacity: "Maximum Capacity (Ah)",
                 charge_cycles: "Charge Cycles",
                 cell_voltages: "⚡ Cell Voltages",
                 cell_resistances: "⚡ Cell Resistances",
-                esp32_control: "🎛️ ESP32 Control",
+                esp32_control: "BMS Control",
                 emergency_stop: "Emergency Stop",
                 setup_mode: "Setup Mode",
+                power_cycle: "Power Cycle (5s)",
+                recover_bms: "Restart BMS",
 
                 alerts: "⚠️ Alerts",
                 no_alerts: "No alerts",
@@ -2456,8 +2595,8 @@
             // Tab buttons
             const tabButtons = document.querySelectorAll('.tab-btn');
             if (tabButtons.length >= 2) {
-                tabButtons[0].textContent = t.monitor_tab;
-                tabButtons[1].textContent = t.settings_tab;
+            tabButtons[0].textContent = t.monitor_tab;
+            tabButtons[1].textContent = t.settings_tab;
             }
             
             // Status bar
@@ -2470,57 +2609,92 @@
             
             // Card titles
             const cardTitles = document.querySelectorAll('.card h3');
-            if (cardTitles.length >= 7) {
+            if (cardTitles.length >= 6) {
                 cardTitles[0].textContent = t.main_info;
                 cardTitles[1].textContent = t.temperature;
                 cardTitles[2].textContent = t.cell_info;
-                cardTitles[3].textContent = t.capacity;
-                cardTitles[4].textContent = t.cell_voltages;
-                cardTitles[5].textContent = t.cell_resistances; // Sửa: Điện trở Cell
-                cardTitles[6].textContent = t.esp32_control;    // Sửa: Điều khiển ESP32
-                cardTitles[7].textContent = t.alerts;           // Sửa: Cảnh báo
+                cardTitles[3].textContent = t.cell_voltages;
+                cardTitles[4].textContent = t.cell_resistances; // Sửa: Điện trở Cell
+                cardTitles[5].textContent = t.esp32_control;    // Sửa: Điều khiển ESP32
+                cardTitles[6].textContent = t.alerts;           // Sửa: Cảnh báo
             }
             
-            // Units
+            // Main info units (corrected order)
             const units = document.querySelectorAll('.unit');
-            if (units.length >= 4) {
-                units[0].textContent = t.voltage;
-                units[1].textContent = t.current;
-                units[2].textContent = t.battery_percent;
-                units[3].textContent = t.power;
+            if (units.length >= 6) {
+                units[0].textContent = t.voltage;        // Điện áp (V)
+                units[1].textContent = t.battery_percent; // Phần trăm pin (%)
+                units[2].textContent = t.current;        // Dòng điện (A)
+                units[3].textContent = t.power;         // Công suất (W)
+                units[4].textContent = "Dung lượng hiện tại (Ah)"; // Dung lượng hiện tại
+                units[5].textContent = "Dung lượng tối đa (Ah)";   // Dung lượng tối đa
             }
             
-            // Temperature units
+            // Temperature units (skip main info units)
             const tempUnits = document.querySelectorAll('.unit');
-            if (tempUnits.length >= 7) {
-                tempUnits[4].textContent = t.temp_sensor1;
-                tempUnits[5].textContent = t.temp_sensor2;
-                tempUnits[6].textContent = t.temp_mos;
+            if (tempUnits.length >= 10) {
+                tempUnits[6].textContent = t.temp_sensor1;   // Nhiệt độ cảm biến 1
+                tempUnits[7].textContent = t.temp_sensor2;   // Nhiệt độ cảm biến 2
+                tempUnits[8].textContent = t.temp_mos;       // Nhiệt độ cảm biến MOS
             }
             
-            // Cell info units
+            // Cell info units (skip main info + temperature units)
             const cellUnits = document.querySelectorAll('.unit');
-            if (cellUnits.length >= 11) {
-                cellUnits[7].textContent = t.min_voltage;
-                cellUnits[8].textContent = t.max_voltage;
-                cellUnits[9].textContent = t.avg_voltage;
-                cellUnits[10].textContent = t.delta_voltage;
+            if (cellUnits.length >= 15) {
+                cellUnits[9].textContent = t.min_voltage;     // Điện áp thấp nhất
+                cellUnits[10].textContent = t.max_voltage;   // Điện áp cao nhất
+                cellUnits[11].textContent = t.avg_voltage;   // Điện áp trung bình
+                cellUnits[12].textContent = t.delta_voltage; // Điện áp chênh lệch
             }
             
-            // Capacity units
-            const capacityUnits = document.querySelectorAll('.unit');
-            if (capacityUnits.length >= 14) {
-                capacityUnits[11].textContent = t.current_capacity;
-                capacityUnits[12].textContent = t.total_capacity;
-                capacityUnits[13].textContent = t.charge_cycles;
+            // Resistance units (skip main info + temperature + cell voltage units)
+            const resistanceUnits = document.querySelectorAll('.unit');
+            if (resistanceUnits.length >= 17) {
+                resistanceUnits[13].textContent = "Điện trở thấp nhất (mΩ)";
+                resistanceUnits[14].textContent = "Điện trở cao nhất (mΩ)";
+                resistanceUnits[15].textContent = "Điện trở trung bình (mΩ)";
+                resistanceUnits[16].textContent = "Điện trở chênh lệch (mΩ)";
             }
             
             // Control buttons
             const controlButtons = document.querySelectorAll('.btn');
-            if (controlButtons.length >= 2) {
-                controlButtons[0].textContent = t.emergency_stop;
-                controlButtons[1].textContent = t.setup_mode;
-            }
+            // Update control buttons
+            const emergencyText = document.getElementById('emergency-text');
+            const recoverText = document.getElementById('recover-text');
+            const setupText = document.getElementById('setup-text');
+            const powerCycleText = document.getElementById('power-cycle-text');
+            
+            if (emergencyText) emergencyText.textContent = t.emergency_stop;
+            if (recoverText) recoverText.textContent = t.recover_bms;
+            if (setupText) setupText.textContent = t.setup_mode;
+            if (powerCycleText) powerCycleText.textContent = t.power_cycle;
+            
+            // Update alerts title and no alerts text
+            const alertsTitle = document.getElementById('alerts-title');
+            const noAlertsText = document.getElementById('no-alerts-text');
+            
+            if (alertsTitle) alertsTitle.textContent = t.alerts;
+            if (noAlertsText) noAlertsText.textContent = t.no_alerts;
+            
+            // Update device label
+            const deviceLabel = document.getElementById('device-label');
+            if (deviceLabel) deviceLabel.textContent = t.device;
+            
+            // Update capacity units
+            const currentCapacityUnit = document.getElementById('current-capacity-unit');
+            const totalCapacityUnit = document.getElementById('total-capacity-unit');
+            if (currentCapacityUnit) currentCapacityUnit.textContent = t.current_capacity;
+            if (totalCapacityUnit) totalCapacityUnit.textContent = t.total_capacity;
+            
+            // Update resistance units
+            const minResistanceUnit = document.getElementById('min-resistance-unit');
+            const maxResistanceUnit = document.getElementById('max-resistance-unit');
+            const avgResistanceUnit = document.getElementById('avg-resistance-unit');
+            const deltaResistanceUnit = document.getElementById('delta-resistance-unit');
+            if (minResistanceUnit) minResistanceUnit.textContent = t.min_resistance;
+            if (maxResistanceUnit) maxResistanceUnit.textContent = t.max_resistance;
+            if (avgResistanceUnit) avgResistanceUnit.textContent = t.avg_resistance;
+            if (deltaResistanceUnit) deltaResistanceUnit.textContent = t.delta_resistance;
             
             // Global password overlay
             const globalOverlay = document.getElementById('global-password-overlay');
@@ -2793,14 +2967,26 @@
 
         // Khởi động lại nguồn (ngắt 5s rồi bật lại)
         function powerCycleDevice() {
-            if (confirm('Bạn có chắc muốn khởi động lại nguồn (5s) cho ESP32?\n\nThiết bị sẽ tạm ngắt nguồn 5 giây rồi bật lại.')) {
+            const currentLang = document.getElementById('language-selector').value;
+            const t = translations[currentLang];
+            const confirmMsg = currentLang === 'vi' 
+                ? 'Bạn có chắc muốn khởi động lại nguồn (5s) cho ESP32?\n\nThiết bị sẽ tạm ngắt nguồn 5 giây rồi bật lại.'
+                : 'Are you sure you want to power cycle (5s) the ESP32?\n\nThe device will temporarily power off for 5 seconds then restart.';
+                
+            if (confirm(confirmMsg)) {
                 if (mqttClient && mqttClient.connected) {
                     const topic = `bms/${selectedDeviceId}/cmd/action`;
                     mqttClient.publish(topic, 'power_cycle', { qos: 1 });
-                    showAlert('Đã gửi lệnh khởi động lại nguồn (5s) qua MQTT', 'success');
-                } else {
-                    showAlert('MQTT chưa kết nối', 'error');
-                }
+                    const successMsg = currentLang === 'vi' 
+                        ? 'Đã gửi lệnh khởi động lại nguồn (5s) qua MQTT'
+                        : 'Power cycle command sent via MQTT';
+                    showAlert(successMsg, 'success');
+                    } else {
+                    const errorMsg = currentLang === 'vi' 
+                        ? 'MQTT chưa kết nối'
+                        : 'MQTT not connected';
+                    showAlert(errorMsg, 'error');
+                    }
             }
         }
     </script>
