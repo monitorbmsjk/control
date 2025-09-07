@@ -1987,6 +1987,10 @@
         // Load settings from server
         async function loadSettings() {
             if (!settingsUnlocked()) { showSettingsLock(); return; }
+            
+            // Luôn hiển thị giá trị mặc định trước
+            updateSettingsUI({});
+            
             try {
                 if (mqttClient && mqttClient.connected) {
                     // Request settings via MQTT
@@ -1994,22 +1998,22 @@
                     mqttClient.publish(topic, 'get_settings', { qos: 1 });
                     console.log('Đã gửi lệnh get_settings qua MQTT');
                 } else {
-                    console.log('MQTT chưa kết nối, không thể load settings');
-                    // Hiển thị giá trị mặc định khi không có MQTT
-                    updateSettingsUI({});
+                    console.log('MQTT chưa kết nối, hiển thị giá trị mặc định');
                 }
             } catch(e){ 
+                console.error('Lỗi khi load settings:', e);
                 const lang = localStorage.getItem('language') || 'vi';
                 const t = translations[lang];
                 const msgEl = document.getElementById('settings-msg');
                 if (msgEl){ msgEl.style.color = '#f44336'; msgEl.textContent = t.load_settings_error; }
-                // Hiển thị giá trị mặc định khi có lỗi
-                updateSettingsUI({});
             }
             await loadSwitches();
         }
 
         async function loadSwitches(){
+            // Hiển thị giá trị mặc định cho switches
+            updateSwitchesUI({});
+            
             try{
                 if (mqttClient && mqttClient.connected) {
                     // Request switches via MQTT
@@ -2017,9 +2021,11 @@
                     mqttClient.publish(topic, 'get_switches', { qos: 1 });
                     console.log('Đã gửi lệnh get_switches qua MQTT');
                 } else {
-                    console.log('MQTT chưa kết nối, không thể load switches');
+                    console.log('MQTT chưa kết nối, hiển thị giá trị mặc định cho switches');
                 }
-            }catch(e){ /* ignore */ }
+            }catch(e){ 
+                console.error('Lỗi khi load switches:', e);
+            }
         }
 
         // Lưu từng setting riêng lẻ
