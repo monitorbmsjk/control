@@ -2492,31 +2492,29 @@
             }
         }
 
-        // Get device ID from MQTT status
-        async function updateDeviceId() {
-            try {
-                const res = await fetch('/api/mqtt-status');
-                const data = await res.json();
-                if (data && data.mqtt_client_id) {
-                    selectedDeviceId = data.mqtt_client_id; // MAC-derived ID from ESP32
-                    resolvedDevice = true;
-                }
-            } catch (e) {
-                // fallback to setup-saved id (MAC or chosen ID)
+        // Resolve device ID without HTTP dependency (works on GitHub Pages)
+        function getUrlParam(name){
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+        function updateDeviceId() {
+            // Priority: URL ?device=... → localStorage; NO discovery for VIP user
+            const fromUrl = getUrlParam('device');
+            if (fromUrl) { selectedDeviceId = fromUrl; resolvedDevice = true; localStorage.setItem('setup_device_id', fromUrl); }
+            if (!resolvedDevice){
                 const saved = localStorage.getItem('setup_device_id') || localStorage.getItem('selectedDeviceId');
-                if (saved) { selectedDeviceId = saved; resolvedDevice = true; }
-                console.log('⚠️ Fallback device id:', selectedDeviceId);
+                if (saved){ selectedDeviceId = saved; resolvedDevice = true; }
             }
             const disp = document.getElementById('device-name-display');
             if (disp) disp.textContent = selectedDeviceId || '--';
-            console.log('🎯 Using device id:', selectedDeviceId || '(none)');
+            console.log('🎯 Using device id (URL/localStorage only):', selectedDeviceId || '(none)');
         }
 
 
 
         // Handle Enter key in password input and initialize global password overlay
         document.addEventListener('DOMContentLoaded', function() {
-            // Get device ID from ESP32
+            // Resolve device ID from URL/localStorage (no HTTP)
             updateDeviceId();
             // Keep emojis for better UI - don't strip them
             // stripEmojis();
@@ -2541,11 +2539,12 @@
 
         // Initialize app after password is entered
         function initializeApp() {
-            // Wait for device ID to be updated before connecting MQTT
-            updateDeviceId().then(() => {
-            connectMQTT();
-                // Don't load settings here - wait for MQTT connection
-            });
+            // Only connect MQTT if we have a resolved device id
+            if (selectedDeviceId){
+                connectMQTT();
+            } else {
+                console.warn('❌ No device id found (URL/localStorage). VIP will not auto-discover.');
+            }
         }
 
         // MQTT Connection
@@ -2568,26 +2567,18 @@
                     updateConnectionStatus(true);
                     reconnectAttempts = 0;
                     
-                    // Subscribe to BMS topics
-                    console.log('📡 Subscribing to topics...');
-                    console.log('🎯 Selected Device ID:', selectedDeviceId);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/data`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/status`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/online`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/settings`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/switches`);
-                    console.log('📡 Subscribed to all topics for device:', selectedDeviceId);
+                    // Subscribe only to the configured device topics (no discovery for VIP)
+                    if (!selectedDeviceId){
+                        console.error('❌ No device id at connect time; not subscribing.');
+                        return;
+                    }
+                    subscribeDeviceTopics(selectedDeviceId);
                     
-                    // Request data from device
-                    console.log('📤 Requesting data from device...');
-                    requestData();
-                    
-                    // Load settings and switches after MQTT connection
-                    console.log('📋 Loading settings and switches...');
-                    loadSettings();
+                    // Request data/settings will be triggered after device resolution
                 });
 
                 mqttClient.on('message', (topic, message) => {
+                    // VIP user: do not auto-select by discovery; process only for selectedDeviceId
                     handleMQTTMessage(topic, message.toString());
                 });
 
