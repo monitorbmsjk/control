@@ -1648,7 +1648,7 @@
             </div>
             <div class="device-info">
                 <div class="device-label" id="device-label">Thiết bị</div>
-                <div id="device-name-display" class="device-name">esp32_001</div>
+                <div id="device-name-display" class="device-name">--</div>
             </div>
         </div>
 
@@ -2478,7 +2478,7 @@
 
         // MQTT Global variables
         let mqttClient = null;
-        let selectedDeviceId = 'esp32_001'; // Default device ID
+        let selectedDeviceId = '';
         let devices = new Map(); // deviceId -> deviceData
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
@@ -2492,22 +2492,25 @@
         }
 
         // Get device ID from MQTT status
-        function updateDeviceId() {
-            return fetch('/api/mqtt-status')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.mqtt_client_id) {
-                        const deviceDisplay = document.getElementById('device-name-display');
-                        if (deviceDisplay) {
-                            deviceDisplay.textContent = data.mqtt_client_id;
-                        }
-                        selectedDeviceId = data.mqtt_client_id;
-                        console.log('🔑 Device ID updated:', selectedDeviceId);
-                    }
-                })
-                .catch(error => {
-                    console.log('Could not get device ID:', error);
-                });
+        async function updateDeviceId() {
+            try {
+                const res = await fetch('/api/mqtt-status');
+                const data = await res.json();
+                if (data && data.mqtt_client_id) {
+                    selectedDeviceId = data.mqtt_client_id;
+                } else {
+                    // Fallback to localStorage (saved during setup)
+                    const saved = localStorage.getItem('setup_device_id');
+                    if (saved) selectedDeviceId = saved;
+                }
+            } catch (e) {
+                const saved = localStorage.getItem('setup_device_id');
+                if (saved) selectedDeviceId = saved;
+                console.log('Could not get device ID, using fallback:', selectedDeviceId);
+            }
+            const deviceDisplay = document.getElementById('device-name-display');
+            if (deviceDisplay) deviceDisplay.textContent = selectedDeviceId || '--';
+            console.log('🔑 Device ID resolved:', selectedDeviceId || '(none)');
         }
 
 
@@ -2569,6 +2572,10 @@
                     // Subscribe to BMS topics
                     console.log('📡 Subscribing to topics...');
                     console.log('🎯 Selected Device ID:', selectedDeviceId);
+                    if (!selectedDeviceId) {
+                        console.error('❌ No device ID resolved. Abort subscribing.');
+                        return;
+                    }
                     mqttClient.subscribe(`bms/${selectedDeviceId}/data`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/status`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/online`);
