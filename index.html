@@ -861,6 +861,16 @@
         .form-group input[type="number"]:hover {
             border-color: #bbb;
         }
+        
+        .form-group input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group input[type="number"]:not(:disabled) {
+            cursor: text;
+        }
 
         .input-with-button {
             display: flex;
@@ -870,6 +880,9 @@
 
         .input-with-button input {
             flex: 1;
+            pointer-events: auto;
+            z-index: 1;
+            position: relative;
         }
 
         .input-with-button button {
@@ -1406,98 +1419,98 @@
                             <div class="form-group">
                                 <label>Ngưỡng cao áp cell (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-overvoltage" step="0.001" placeholder="3.65">
+                                    <input type="number" id="cell-overvoltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_overvoltage','cell-overvoltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Khôi phục cao áp (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-overvoltage-recovery" step="0.001" placeholder="3.40">
+                                    <input type="number" id="cell-overvoltage-recovery" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_overvoltage_recovery','cell-overvoltage-recovery')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Ngưỡng thấp áp cell (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-undervoltage" step="0.001" placeholder="3.00">
+                                    <input type="number" id="cell-undervoltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_undervoltage','cell-undervoltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Khôi phục thấp áp (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-undervoltage-recovery" step="0.001" placeholder="3.20">
+                                    <input type="number" id="cell-undervoltage-recovery" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_undervoltage_recovery','cell-undervoltage-recovery')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Ngưỡng cân bằng (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="balance-trigger-voltage" step="0.001" placeholder="0.10">
+                                    <input type="number" id="balance-trigger-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('balance_trigger_voltage','balance-trigger-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp bắt đầu cân bằng (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="balance-start-voltage" step="0.001" placeholder="4.10">
+                                    <input type="number" id="balance-start-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('balance_start_voltage','balance-start-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp khi pin 100% (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-soc100-voltage" step="0.001" placeholder="3.65">
+                                    <input type="number" id="cell-soc100-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_soc100_voltage','cell-soc100-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp khi pin 0% (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-soc0-voltage" step="0.001" placeholder="3.00">
+                                    <input type="number" id="cell-soc0-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_soc0_voltage','cell-soc0-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp yêu cầu sạc (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-request-charge-voltage" step="0.001" placeholder="3.455">
+                                    <input type="number" id="cell-request-charge-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_request_charge_voltage','cell-request-charge-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp duy trì (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-request-float-voltage" step="0.001" placeholder="3.401">
+                                    <input type="number" id="cell-request-float-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('cell_request_float_voltage','cell-request-float-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp ngủ thông minh (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="smart-sleep-voltage" step="0.001" placeholder="0.003">
+                                    <input type="number" id="smart-sleep-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('smart_sleep_voltage','smart-sleep-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Điện áp tắt nguồn (V)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="power-off-voltage" step="0.001" placeholder="3.40">
+                                    <input type="number" id="power-off-voltage" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('power_off_voltage','power-off-voltage')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Số lượng cell</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="cell-count" step="1" min="2" max="32" placeholder="16">
+                                    <input type="number" id="cell-count" step="1" min="2" max="32" placeholder="">
                                     <button onclick="saveSingleSetting('cell_count','cell-count')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Tổng dung lượng (Ah)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="capacity" step="0.1" placeholder="280.0">
+                                    <input type="number" id="capacity" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('capacity','capacity')">OK</button>
                                 </div>
                             </div>
@@ -1517,28 +1530,28 @@
                             <div class="form-group">
                                 <label>Dòng cân bằng tối đa (A)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="max-balance-current" step="0.1" placeholder="0.3">
+                                    <input type="number" id="max-balance-current" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('max_balance_current','max-balance-current')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Dòng sạc tối đa (A)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-current" step="0.1" placeholder="50.0">
+                                    <input type="number" id="charge-current" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_current','charge-current')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Dòng xả tối đa (A)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="discharge-current" step="0.1" placeholder="50.0">
+                                    <input type="number" id="discharge-current" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('discharge_current','discharge-current')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Hiệu chuẩn dòng điện</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="current-calibration" step="0.001" placeholder="2.0">
+                                    <input type="number" id="current-calibration" step="0.001" placeholder="">
                                     <button onclick="saveSingleSetting('current_calibration','current-calibration')">OK</button>
                                 </div>
                             </div>
@@ -1558,70 +1571,70 @@
                             <div class="form-group">
                                 <label>Độ trễ quá dòng sạc (s)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-ocp-delay-s" step="1" placeholder="40">
+                                    <input type="number" id="charge-ocp-delay-s" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_ocp_delay_s','charge-ocp-delay-s')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Thời gian khôi phục quá dòng sạc (s)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-ocpr-time-s" step="1" placeholder="70">
+                                    <input type="number" id="charge-ocpr-time-s" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_ocpr_time_s','charge-ocpr-time-s')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Độ trễ quá dòng xả (s)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="discharge-ocp-delay-s" step="1" placeholder="300">
+                                    <input type="number" id="discharge-ocp-delay-s" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('discharge_ocp_delay_s','discharge-ocp-delay-s')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Thời gian khôi phục quá dòng xả (s)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="discharge-ocpr-time-s" step="1" placeholder="70">
+                                    <input type="number" id="discharge-ocpr-time-s" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('discharge_ocpr_time_s','discharge-ocpr-time-s')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Độ trễ ngắn mạch (μs)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="scp-delay-us" step="1" placeholder="2000">
+                                    <input type="number" id="scp-delay-us" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('scp_delay_us','scp-delay-us')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Thời gian khôi phục ngắn mạch (s)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="scp-recovery-time-s" step="1" placeholder="70">
+                                    <input type="number" id="scp-recovery-time-s" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('scp_recovery_time_s','scp-recovery-time-s')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Thời gian yêu cầu sạc (h)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="request-charge-voltage-time-h" step="0.1" placeholder="2.0">
+                                    <input type="number" id="request-charge-voltage-time-h" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('request_charge_voltage_time_h','request-charge-voltage-time-h')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Thời gian điện áp duy trì (h)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="request-float-voltage-time-h" step="0.1" placeholder="9.0">
+                                    <input type="number" id="request-float-voltage-time-h" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('request_float_voltage_time_h','request-float-voltage-time-h')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Thời gian precharge xả (s)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="discharge-precharge-time-s" step="1" placeholder="0">
+                                    <input type="number" id="discharge-precharge-time-s" step="1" placeholder="">
                                     <button onclick="saveSingleSetting('discharge_precharge_time_s','discharge-precharge-time-s')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Hiệu chuẩn điện áp</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="voltage-calibration" step="0.01" placeholder="15.00">
+                                    <input type="number" id="voltage-calibration" step="0.01" placeholder="">
                                     <button onclick="saveSingleSetting('voltage_calibration','voltage-calibration')">OK</button>
                                 </div>
                             </div>
@@ -1641,56 +1654,56 @@
                             <div class="form-group">
                                 <label>Nhiệt độ quá cao sạc (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-overtemp" step="0.1" placeholder="66.0">
+                                    <input type="number" id="charge-overtemp" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_overtemp','charge-overtemp')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ khôi phục sạc (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-overtemp-recovery" step="0.1" placeholder="61.0">
+                                    <input type="number" id="charge-overtemp-recovery" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_overtemp_recovery','charge-overtemp-recovery')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ quá cao xả (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="discharge-overtemp" step="0.1" placeholder="77.0">
+                                    <input type="number" id="discharge-overtemp" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('discharge_overtemp','discharge-overtemp')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ khôi phục xả (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="discharge-overtemp-recovery" step="0.1" placeholder="65.0">
+                                    <input type="number" id="discharge-overtemp-recovery" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('discharge_overtemp_recovery','discharge-overtemp-recovery')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ quá thấp sạc (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-undertemp" step="0.1" placeholder="-22.0">
+                                    <input type="number" id="charge-undertemp" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_undertemp','charge-undertemp')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ khôi phục sạc (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="charge-undertemp-recovery" step="0.1" placeholder="-9.0">
+                                    <input type="number" id="charge-undertemp-recovery" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('charge_undertemp_recovery','charge-undertemp-recovery')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ quá cao MOSFET (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="mos-overtemp" step="0.1" placeholder="99.0">
+                                    <input type="number" id="mos-overtemp" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('mos_overtemp','mos-overtemp')">OK</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Nhiệt độ khôi phục MOSFET (°C)</label>
                                 <div class="input-with-button">
-                                    <input type="number" id="mos-overtemp-recovery" step="0.1" placeholder="78.0">
+                                    <input type="number" id="mos-overtemp-recovery" step="0.1" placeholder="">
                                     <button onclick="saveSingleSetting('mos_overtemp_recovery','mos-overtemp-recovery')">OK</button>
                                 </div>
                             </div>
@@ -2046,14 +2059,19 @@
 
             const cmd = {}; cmd[settingKey] = value;
 
-            const topic = `bms/esp32_001/cmd/settings`;
+            const topic = `bms/${selectedDeviceId}/cmd/settings`;
+            console.log('📤 Sending settings to ESP32:', topic, cmd);
             try{
 
                 mqttClient.publish(topic, JSON.stringify(cmd), { qos: 1 });
 
                 showAlert(`Đã gửi cài đặt ${settingKey}=${value}`,'success');
+                console.log('✅ Settings sent successfully');
 
-            }catch(e){ showAlert('Lỗi gửi MQTT','error'); }
+            }catch(e){ 
+                showAlert('Lỗi gửi MQTT','error'); 
+                console.error('❌ MQTT send error:', e);
+            }
 
         }
 
@@ -2073,14 +2091,19 @@
 
             const cmd = {}; cmd[switchKey] = value;
 
-            const topic = `bms/esp32_001/cmd/switches`;
+            const topic = `bms/${selectedDeviceId}/cmd/switches`;
+            console.log('📤 Sending switch to ESP32:', topic, cmd);
             try{
 
                 mqttClient.publish(topic, JSON.stringify(cmd), { qos: 1 });
 
                 showAlert(`Đã gửi công tắc ${switchKey}=${value}`,'success');
+                console.log('✅ Switch sent successfully');
 
-            }catch(e){ showAlert('Lỗi gửi MQTT','error'); }
+            }catch(e){ 
+                showAlert('Lỗi gửi MQTT','error'); 
+                console.error('❌ MQTT send error:', e);
+            }
 
         }
 
@@ -2129,6 +2152,10 @@
                 mqttClient.subscribe('bms/+/status');
 
                 mqttClient.subscribe('bms/+/online');
+                
+                mqttClient.subscribe('bms/+/settings');
+                
+                mqttClient.subscribe('bms/+/switches');
 
                 
 
@@ -2143,7 +2170,6 @@
         // Xử lý tin nhắn MQTT
 
         function handleMQTTMessage(topic, message) {
-
             const topicParts = topic.split('/');
 
             const deviceId = topicParts[1];
@@ -2212,6 +2238,22 @@
 
                     device.status = 'online';
 
+                } else if (messageType === 'settings') {
+
+                    device.settings = data;
+
+                    device.status = 'online';
+                    
+                    console.log('📋 Received settings from BMS:', data);
+
+                } else if (messageType === 'switches') {
+
+                    device.switches = data;
+
+                    device.status = 'online';
+                    
+                    console.log('🔌 Received switches from BMS:', data);
+
                 }
 
                 // Giữ nguyên trạng thái khi chưa chọn thiết bị (không tự động chọn)
@@ -2223,6 +2265,15 @@
                 if (selectedDeviceId === deviceId) {
 
                     updateBMSInterface(device);
+                    
+                    // Cập nhật settings UI nếu có data
+                    if (messageType === 'settings' && device.settings) {
+                        updateSettingsUI(device.settings);
+                    }
+                    
+                    if (messageType === 'switches' && device.switches) {
+                        updateSwitchesUI(device.switches);
+                    }
 
                 }
 
@@ -2239,7 +2290,6 @@
         // Cập nhật danh sách thiết bị
 
         function updateDeviceList() {
-
             const deviceList = document.getElementById('device-list');
 
             deviceList.innerHTML = '';
@@ -2313,7 +2363,6 @@
         // Chọn thiết bị
 
         function selectDevice(deviceId) {
-
             selectedDeviceId = deviceId;
 
             const device = devices.get(deviceId);
@@ -2354,6 +2403,12 @@
                 const se = document.getElementById('settings-empty');
                 const sc = document.getElementById('settings-content');
                 if (se && sc){ se.style.display = 'none'; sc.style.display = ''; }
+                
+                // Load settings từ BMS khi chọn thiết bị (delay để đảm bảo BMS sẵn sàng)
+                console.log('🔄 Loading settings from BMS for device:', deviceId);
+                setTimeout(() => {
+                    loadSettingsFromBMS(deviceId);
+                }, 1000); // Delay 1 giây
 
                 
                 // Cập nhật trạng thái nút xóa
@@ -2367,7 +2422,6 @@
         // Cập nhật giao diện BMS
 
         function updateBMSInterface(device) {
-
             const d = device.data || {};
 
             // Check emergency state and update buttons accordingly
@@ -2714,9 +2768,17 @@
 
             connectMQTT();
 
+            // Load settings từ BMS nếu đã có thiết bị được chọn (sau F5)
+            if (selectedDeviceId) {
+                console.log('🔄 Page reload detected, loading settings for:', selectedDeviceId);
+                setTimeout(() => {
+                    loadSettingsFromBMS(selectedDeviceId);
+                }, 2000); // Delay 2 giây để đảm bảo MQTT đã kết nối
+            }
             
             // Khởi tạo trạng thái nút xóa
             updateRemoveButtonState();
+            
             
 
             // Cập nhật trạng thái thiết bị mỗi 30 giây
@@ -2759,13 +2821,206 @@
         }
 
 
+        // Clear tất cả settings fields
+        function clearAllSettingsFields() {
+            console.log('🧹 Clearing all settings fields...');
+            
+            const clearInput = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = '';
+                }
+            };
+            
+            const clearSwitch = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.checked = false;
+                }
+            };
+            
+            // Clear all input fields
+            clearInput('cell-overvoltage');
+            clearInput('cell-overvoltage-recovery');
+            clearInput('cell-undervoltage');
+            clearInput('cell-undervoltage-recovery');
+            clearInput('balance-trigger-voltage');
+            clearInput('balance-start-voltage');
+            clearInput('cell-soc100-voltage');
+            clearInput('cell-soc0-voltage');
+            clearInput('cell-request-charge-voltage');
+            clearInput('cell-request-float-voltage');
+            clearInput('smart-sleep-voltage');
+            clearInput('power-off-voltage');
+            clearInput('cell-count');
+            clearInput('capacity');
+            clearInput('max-balance-current');
+            clearInput('charge-current');
+            clearInput('discharge-current');
+            clearInput('current-calibration');
+            clearInput('charge-overtemp');
+            clearInput('charge-overtemp-recovery');
+            clearInput('discharge-overtemp');
+            clearInput('discharge-overtemp-recovery');
+            clearInput('charge-undertemp');
+            clearInput('charge-undertemp-recovery');
+            clearInput('mos-overtemp');
+            clearInput('mos-overtemp-recovery');
+            
+            // Clear all switches
+            clearSwitch('charge-mosfet-on');
+            clearSwitch('discharge-mosfet-on');
+            clearSwitch('balancer-on');
+            clearSwitch('heating-on');
+            clearSwitch('disable-temperature-sensors');
+            clearSwitch('display-always-on');
+            clearSwitch('smart-sleep-on');
+            clearSwitch('disable-pcl-module');
+            clearSwitch('timed-stored-data');
+            clearSwitch('charging-float-mode');
+            clearSwitch('emergency-mode');
+            
+            console.log('✅ All settings fields cleared');
+        }
+
+        // Update settings UI với giá trị từ BMS
+        function updateSettingsUI(settings) {
+            console.log('🔧 Updating settings UI with BMS data:', settings);
+            console.log('🔧 Settings received at:', new Date().toLocaleTimeString());
+            console.log('🔧 Settings keys:', Object.keys(settings || {}));
+            console.log('🔧 cell_overvoltage value:', settings.cell_overvoltage);
+            console.log('🔧 disable_temperature_sensors value:', settings.disable_temperature_sensors);
+            
+            // Helper function để cập nhật input values (chỉ hiển thị giá trị thực từ BMS)
+            const updateInput = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    if (value !== undefined && value !== null) {
+                        element.value = value;
+                        console.log(`✅ Updated ${id}: ${value} (from BMS)`);
+                    } else {
+                        // Giữ giá trị hiện tại nếu không có giá trị từ BMS
+                        console.warn(`⚠️ No value from BMS for ${id}, keeping current value: ${element.value}`);
+                    }
+                } else {
+                    console.warn(`❌ Element not found: ${id}`);
+                }
+            };
+            
+            // Cập nhật tất cả settings fields với giá trị thực từ BMS
+            console.log('🔍 cell_overvoltage value from BMS:', settings.cell_overvoltage);
+            updateInput('cell-overvoltage', settings.cell_overvoltage);
+            updateInput('cell-overvoltage-recovery', settings.cell_overvoltage_recovery);
+            updateInput('cell-undervoltage', settings.cell_undervoltage);
+            updateInput('cell-undervoltage-recovery', settings.cell_undervoltage_recovery);
+            updateInput('balance-trigger-voltage', settings.balance_trigger_voltage);
+            updateInput('balance-start-voltage', settings.balance_start_voltage);
+            updateInput('cell-soc100-voltage', settings.cell_soc100_voltage);
+            updateInput('cell-soc0-voltage', settings.cell_soc0_voltage);
+            updateInput('cell-request-charge-voltage', settings.cell_request_charge_voltage);
+            updateInput('cell-request-float-voltage', settings.cell_request_float_voltage);
+            updateInput('smart-sleep-voltage', settings.smart_sleep_voltage);
+            updateInput('power-off-voltage', settings.power_off_voltage);
+            updateInput('cell-count', settings.cell_count);
+            updateInput('capacity', settings.capacity);
+            
+            // Currents
+            updateInput('max-balance-current', settings.max_balance_current);
+            updateInput('charge-current', settings.charge_current);
+            updateInput('discharge-current', settings.discharge_current);
+            updateInput('current-calibration', settings.current_calibration);
+            
+            // Times & Delays
+            updateInput('charge-ocp-delay-s', settings.charge_ocp_delay_s);
+            updateInput('charge-ocpr-time-s', settings.charge_ocpr_time_s);
+            updateInput('discharge-ocp-delay-s', settings.discharge_ocp_delay_s);
+            updateInput('discharge-ocpr-time-s', settings.discharge_ocpr_time_s);
+            updateInput('scp-delay-us', settings.scp_delay_us);
+            updateInput('scp-recovery-time-s', settings.scp_recovery_time_s);
+            updateInput('request-charge-voltage-time-h', settings.request_charge_voltage_time_h);
+            updateInput('request-float-voltage-time-h', settings.request_float_voltage_time_h);
+            updateInput('discharge-precharge-time-s', settings.discharge_precharge_time_s);
+            updateInput('voltage-calibration', settings.voltage_calibration);
+            
+            // Temperatures
+            updateInput('charge-overtemp', settings.charge_overtemp);
+            updateInput('charge-overtemp-recovery', settings.charge_overtemp_recovery);
+            updateInput('discharge-overtemp', settings.discharge_overtemp);
+            updateInput('discharge-overtemp-recovery', settings.discharge_overtemp_recovery);
+            updateInput('charge-undertemp', settings.charge_undertemp);
+            updateInput('charge-undertemp-recovery', settings.charge_undertemp_recovery);
+            updateInput('mos-overtemp', settings.mos_overtemp);
+            updateInput('mos-overtemp-recovery', settings.mos_overtemp_recovery);
+            
+            console.log('✅ Settings UI updated with BMS values');
+        }
+
+        // Update switches UI với giá trị từ BMS
+        function updateSwitchesUI(switches) {
+            console.log('🔧 Updating switches UI with BMS data:', switches);
+            console.log('🔧 Switches object keys:', Object.keys(switches || {}));
+            console.log('🔧 disable_temperature_sensors value:', switches.disable_temperature_sensors);
+            console.log('🔧 charge_mosfet_on value:', switches.charge_mosfet_on);
+            
+            const setSwitch = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    if (value !== undefined && value !== null) {
+                        element.checked = !!value;
+                        console.log(`✅ Updated switch ${id}: ${value} (from BMS)`);
+                    } else {
+                        // Giữ trạng thái hiện tại nếu không có giá trị từ BMS
+                        console.warn(`⚠️ No value from BMS for switch ${id}, keeping current state: ${element.checked}`);
+                    }
+                } else {
+                    console.warn(`❌ Switch element not found: ${id}`);
+                }
+            };
+            
+            setSwitch('charge-mosfet-on', switches.charge_mosfet_on);
+            setSwitch('discharge-mosfet-on', switches.discharge_mosfet_on);
+            setSwitch('balancer-on', switches.balancer_on);
+            setSwitch('heating-on', switches.heating_on);
+            setSwitch('disable-temperature-sensors', switches.disable_temperature_sensors);
+            setSwitch('display-always-on', switches.display_always_on);
+            setSwitch('smart-sleep-on', switches.smart_sleep_on);
+            setSwitch('disable-pcl-module', switches.disable_pcl_module);
+            setSwitch('timed-stored-data', switches.timed_stored_data);
+            setSwitch('charging-float-mode', switches.charging_float_mode);
+            setSwitch('emergency-mode', switches.emergency_mode);
+            
+            console.log('✅ Switches UI updated with BMS values');
+        }
+
+        // Load settings từ BMS
+        function loadSettingsFromBMS(deviceId) {    
+            if (!mqttClient || !mqttClient.connected) {
+                console.log('❌ MQTT not connected, cannot load settings');
+                return;
+            }
+            
+            console.log('📋 Requesting settings from BMS:', deviceId);
+            
+            // Request settings
+            const settingsTopic = `bms/${deviceId}/cmd/action`;
+            console.log('📤 Publishing to topic:', settingsTopic);
+            mqttClient.publish(settingsTopic, 'get_settings', { qos: 1 });
+            
+            // Request switches
+            mqttClient.publish(settingsTopic, 'get_switches', { qos: 1 });
+            
+            console.log('📤 Sent get_settings and get_switches commands');
+            console.log('⏳ Waiting for settings response...');
+        }
+
+
         // Scan các thiết bị đang hoạt động
         function scanActiveDevices() {
             console.log('Đang scan các thiết bị đang hoạt động...');
             
             // Gửi lệnh scan tới ESP32
             if (mqttClient && mqttClient.connected) {
-                const topic = `bms/esp32_001/cmd/action`;
+                const topic = `bms/${selectedDeviceId}/cmd/action`;
                 mqttClient.publish(topic, 'get_status', { qos: 1 });
                 console.log('Đã gửi lệnh scan tới ESP32');
                 
@@ -2787,7 +3042,7 @@
                 devices.delete(selectedDeviceId);
                 
                 // Nếu đang chọn thiết bị bị xóa, quay về welcome screen
-                if (selectedDeviceId === selectedDeviceId) {
+                if (selectedDeviceId === deviceId) {
                     selectedDeviceId = null;
                     document.getElementById('welcome-screen').style.display = 'block';
                     document.getElementById('bms-interface').classList.remove('active');
@@ -2802,7 +3057,7 @@
         }
 
         // Cập nhật trạng thái nút xóa thiết bị
-        function updateRemoveButtonState() {
+        function updateRemoveButtonState() {Ư
             const removeBtn = document.getElementById('remove-device-btn');
             if (removeBtn) {
                 removeBtn.disabled = !selectedDeviceId;
