@@ -2479,6 +2479,7 @@
         // MQTT Global variables
         let mqttClient = null;
         let selectedDeviceId = '';
+        let resolvedDevice = false;
         let devices = new Map(); // deviceId -> deviceData
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
@@ -2497,20 +2498,18 @@
                 const res = await fetch('/api/mqtt-status');
                 const data = await res.json();
                 if (data && data.mqtt_client_id) {
-                    selectedDeviceId = data.mqtt_client_id;
-                } else {
-                    // Fallback to localStorage (saved during setup)
-                    const saved = localStorage.getItem('setup_device_id');
-                    if (saved) selectedDeviceId = saved;
+                    selectedDeviceId = data.mqtt_client_id; // MAC-derived ID from ESP32
+                    resolvedDevice = true;
                 }
             } catch (e) {
-                const saved = localStorage.getItem('setup_device_id');
-                if (saved) selectedDeviceId = saved;
-                console.log('Could not get device ID, using fallback:', selectedDeviceId);
+                // fallback to setup-saved id (MAC or chosen ID)
+                const saved = localStorage.getItem('setup_device_id') || localStorage.getItem('selectedDeviceId');
+                if (saved) { selectedDeviceId = saved; resolvedDevice = true; }
+                console.log('⚠️ Fallback device id:', selectedDeviceId);
             }
-            const deviceDisplay = document.getElementById('device-name-display');
-            if (deviceDisplay) deviceDisplay.textContent = selectedDeviceId || '--';
-            console.log('🔑 Device ID resolved:', selectedDeviceId || '(none)');
+            const disp = document.getElementById('device-name-display');
+            if (disp) disp.textContent = selectedDeviceId || '--';
+            console.log('🎯 Using device id:', selectedDeviceId || '(none)');
         }
 
 
@@ -2572,10 +2571,6 @@
                     // Subscribe to BMS topics
                     console.log('📡 Subscribing to topics...');
                     console.log('🎯 Selected Device ID:', selectedDeviceId);
-                    if (!selectedDeviceId) {
-                        console.error('❌ No device ID resolved. Abort subscribing.');
-                        return;
-                    }
                     mqttClient.subscribe(`bms/${selectedDeviceId}/data`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/status`);
                     mqttClient.subscribe(`bms/${selectedDeviceId}/online`);
