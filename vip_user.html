@@ -2480,6 +2480,7 @@
         let mqttClient = null;
         let selectedDeviceId = '';
         let resolvedDevice = false;
+        let allowDiscovery = false; // only used when no ID from URL/localStorage
         let devices = new Map(); // deviceId -> deviceData
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
@@ -2539,12 +2540,9 @@
 
         // Initialize app after password is entered
         function initializeApp() {
-            // Only connect MQTT if we have a resolved device id
-            if (selectedDeviceId){
-                connectMQTT();
-            } else {
-                console.warn('❌ No device id found (URL/localStorage). VIP will not auto-discover.');
-            }
+            // Connect MQTT; if no ID, enable one-time discovery
+            if (!selectedDeviceId){ allowDiscovery = true; }
+            connectMQTT();
         }
 
         // MQTT Connection
@@ -2567,18 +2565,39 @@
                     updateConnectionStatus(true);
                     reconnectAttempts = 0;
                     
-                    // Subscribe only to the configured device topics (no discovery for VIP)
-                    if (!selectedDeviceId){
-                        console.error('❌ No device id at connect time; not subscribing.');
-                        return;
+                    if (allowDiscovery){
+                        console.log('📡 Discovery enabled: subscribing wildcard topics temporarily...');
+                        mqttClient.subscribe('bms/+/status');
+                        mqttClient.subscribe('bms/+/online');
+                        mqttClient.subscribe('bms/+/data');
                     }
-                    subscribeDeviceTopics(selectedDeviceId);
+                    if (selectedDeviceId){
+                        subscribeDeviceTopics(selectedDeviceId);
+                    }
                     
                     // Request data/settings will be triggered after device resolution
                 });
 
                 mqttClient.on('message', (topic, message) => {
-                    // VIP user: do not auto-select by discovery; process only for selectedDeviceId
+                    try{
+                        if (allowDiscovery && !selectedDeviceId){
+                            const parts = topic.split('/'); // bms/<id>/<type>
+                            if (parts.length >= 3 && parts[0] === 'bms'){
+                                const devId = parts[1];
+                                const msgType = parts[2];
+                                if (msgType === 'status' || msgType === 'online' || msgType === 'data'){
+                                    selectedDeviceId = devId; resolvedDevice = true; allowDiscovery = false;
+                                    localStorage.setItem('setup_device_id', devId);
+                                    const disp = document.getElementById('device-name-display'); if (disp) disp.textContent = devId;
+                                    console.log('🎯 Auto-selected configured device via discovery:', devId);
+                                    // Subscribe to device-specific topics and request data
+                                    subscribeDeviceTopics(devId);
+                                    requestData();
+                                    loadSettings();
+                                }
+                            }
+                        }
+                    }catch(e){ /* ignore */ }
                     handleMQTTMessage(topic, message.toString());
                 });
 
@@ -2600,6 +2619,32 @@
             } catch (error) {
                 console.error('Lỗi kết nối MQTT:', error);
                 updateConnectionStatus(false);
+            }
+        }
+
+        // Subscribe to all specific topics for a given device and stop discovery if active
+        function subscribeDeviceTopics(deviceId){
+            if (!mqttClient || !mqttClient.connected){
+                console.warn('⚠️ Cannot subscribe, MQTT not connected');
+                return;
+            }
+            try{
+                // If we had discovery enabled, turn it off and unsubscribe wildcard topics
+                if (allowDiscovery){
+                    allowDiscovery = false;
+                    try{ mqttClient.unsubscribe('bms/+/status'); }catch(e){}
+                    try{ mqttClient.unsubscribe('bms/+/online'); }catch(e){}
+                    try{ mqttClient.unsubscribe('bms/+/data'); }catch(e){}
+                }
+
+                mqttClient.subscribe(`bms/${deviceId}/data`);
+                mqttClient.subscribe(`bms/${deviceId}/status`);
+                mqttClient.subscribe(`bms/${deviceId}/online`);
+                mqttClient.subscribe(`bms/${deviceId}/settings`);
+                mqttClient.subscribe(`bms/${deviceId}/switches`);
+                console.log('📡 Subscribed to device topics:', deviceId);
+            }catch(e){
+                console.error('❌ Failed subscribing to device topics:', e);
             }
         }
 
