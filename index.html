@@ -1058,6 +1058,9 @@
                     <button class="btn btn-danger" onclick="removeSelectedDevice()" id="remove-device-btn" disabled>
                          Xóa thiết bị
                     </button>
+                    <button class="btn btn-primary" id="admin-policy-btn" onclick="openPolicyModal()" disabled>
+                         Chính sách (Admin)
+                    </button>
                 </div>
             </div>
 
@@ -1076,13 +1079,63 @@
         <!-- Main Content -->
 
         <div class="main-content">
+            <!-- Admin Policy Modal -->
+            <div id="policy-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10001; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:12px; padding:20px; max-width:520px; width:92%;">
+                    <h3 style="margin-bottom:10px; text-align:center;">Chính sách hạn chế (Admin)</h3>
+                    <p style="color:#555; margin-bottom:12px;">Áp dụng cho thiết bị đang chọn. Người dùng sẽ không thể vượt qua hạn chế này.</p>
+                    <div style="display:grid; grid-template-columns:1fr; gap:10px;">
+                        <label style="display:flex; align-items:center; gap:10px;">
+                            <input type="checkbox" id="policy-disallow-monitoring"> Vô hiệu hóa theo dõi thông số pin (monitor)
+                        </label>
+                        <label style="display:flex; align-items:center; gap:10px;">
+                            <input type="checkbox" id="policy-disallow-settings"> Vô hiệu hóa toàn bộ cài đặt
+                        </label>
+                        <div id="policy-specific-settings" style="padding:10px; border:1px solid #eee; border-radius:8px;">
+                            <div style="margin-bottom:6px; font-weight:600;">Hoặc chọn cài đặt cụ thể bị vô hiệu hóa:</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.95em;">
+                                <label><input type="checkbox" class="policy-setting-item" value="voltage"> Nhóm Điện áp</label>
+                                <label><input type="checkbox" class="policy-setting-item" value="current"> Nhóm Dòng điện</label>
+                                <label><input type="checkbox" class="policy-setting-item" value="time_delay"> Nhóm Thời gian & Độ trễ</label>
+                                <label><input type="checkbox" class="policy-setting-item" value="temperature"> Nhóm Nhiệt độ</label>
+                                <label><input type="checkbox" class="policy-setting-item" value="switches"> Công tắc điều khiển</label>
+                            </div>
+                            <div style="margin-top:8px; color:#888;">Nếu bật "Vô hiệu hóa toàn bộ cài đặt" thì không cần chọn chi tiết.</div>
+                        </div>
+                        
+                        <!-- Emergency Controls Section -->
+                        <div style="margin-top:20px; padding:15px; border:2px solid #ff6b6b; border-radius:8px; background:#fff5f5;">
+                            <div style="margin-bottom:10px; font-weight:600; color:#ff6b6b; text-align:center;">🛑 Emergency Controls</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <button class="btn btn-danger" id="modal-admin-stop-esp32-btn" onclick="stopESP32()" style="padding:10px; font-size:14px; font-weight:bold;">
+                                    🛑 Ngưng ESP32
+                                </button>
+                                <button class="btn btn-success" id="modal-admin-unlock-esp32-btn" onclick="unlockESP32()" style="padding:10px; font-size:14px; font-weight:bold; display:none;">
+                                    🔓 Mở khóa ESP32
+                                </button>
+                                <button class="btn btn-danger" id="modal-admin-stop-bms-btn" onclick="stopBMS()" style="padding:10px; font-size:14px; font-weight:bold;">
+                                    🛑 Ngưng BMS JK
+                                </button>
+                                <button class="btn btn-success" id="modal-admin-unlock-bms-btn" onclick="unlockBMS()" style="padding:10px; font-size:14px; font-weight:bold; display:none;">
+                                    🔓 Mở khóa BMS
+                                </button>
+                            </div>
+                            <div style="text-align:center; color:#ff6b6b; font-size:12px; margin-top:8px;">
+                                ⚠️ CẢNH BÁO: Các nút này sẽ NGƯNG HOẠT ĐỘNG thiết bị!
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn btn-secondary" onclick="closePolicyModal()">Hủy</button>
+                        <button class="btn btn-primary" onclick="savePolicy()">OK</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="nav-tabs">
-
-                <button class="tab-btn active" onclick="showTab('monitor')">Thông số pin</button>
-
-                <button class="tab-btn" onclick="showTab('settings')">Cài đặt</button>
-
+                <button class="tab-btn active" onclick="showTab('monitor', this)">Thông số pin</button>
+                <button class="tab-btn" onclick="showTab('settings', this)">Cài đặt</button>
+                
             </div>
 
             <div id="monitor-tab" class="tab-content active">
@@ -1105,6 +1158,8 @@
                 <p>Chọn một ESP32 từ danh sách bên trái để bắt đầu giám sát</p>
 
             </div>
+
+            
 
 
 
@@ -1896,34 +1951,13 @@
 
 
 
-        function showTab(tab){
-
-            const tabs = document.querySelectorAll('.tab-content');
-
-            tabs.forEach(t=>t.classList.remove('active'));
-
-            const btns = document.querySelectorAll('.tab-btn');
-
-            btns.forEach(b=>b.classList.remove('active'));
-
-            const target = document.getElementById(`${tab}-tab`);
-
-            if(target) target.classList.add('active');
-
-            if(tab==='monitor' && btns[0]) btns[0].classList.add('active');
-
-            if(tab==='settings' && btns[1]) btns[1].classList.add('active');
-            // Toggle settings placeholder vs content
-            const hasSelection = !!selectedDeviceId;
-            const se = document.getElementById('settings-empty');
-            const sc = document.getElementById('settings-content');
-            if (se && sc){
-                if (hasSelection){ se.style.display = 'none'; sc.style.display = ''; }
-                else { se.style.display = ''; sc.style.display = 'none'; }
-            }
-
-            if(tab==='control' && btns[2]) btns[2].classList.add('active');
-
+        function showTab(tabName, btn){
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c=> c.classList.remove('active'));
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(b=> b.classList.remove('active'));
+            document.getElementById(tabName+'-tab').classList.add('active');
+            if (btn) btn.classList.add('active');
         }
 
 
@@ -1969,10 +2003,12 @@
 
 
 
-                mqttClient.on('message', (topic, message) => {
-
-                    handleMQTTMessage(topic, message.toString());
-
+                mqttClient.on('message', (topic, message, packet) => {
+                    const payload = message.toString();
+                    const isRetained = packet && packet.retain === true;
+                    // Bỏ qua chat (đã gỡ)
+                    if (topic.startsWith('bms/') && topic.includes('/chat/')) return;
+                    handleMQTTMessage(topic, payload, isRetained);
                 });
 
 
@@ -2156,9 +2192,11 @@
                 mqttClient.subscribe('bms/+/settings');
                 
                 mqttClient.subscribe('bms/+/switches');
-
+                // subscribe to policy to reflect current policy when selecting device
+                mqttClient.subscribe('bms/+/policy');
+                // chat removed: no subscriptions to chat topics
                 
-
+                
                 console.log('Đã subscribe vào topics BMS');
 
             }
@@ -2169,14 +2207,14 @@
 
         // Xử lý tin nhắn MQTT
 
-        function handleMQTTMessage(topic, message) {
+        function handleMQTTMessage(topic, message, isRetained) {
             const topicParts = topic.split('/');
 
             const deviceId = topicParts[1];
 
             const messageType = topicParts[2];
-
-
+            // chat messages are handled in mqttClient.on('message')
+            if (messageType === 'chat') return;
 
             if (!devices.has(deviceId)) {
 
@@ -2199,8 +2237,10 @@
 
 
             const device = devices.get(deviceId);
-
-            device.lastSeen = Date.now();
+            // Chỉ cập nhật lastSeen nếu message KHÔNG phải retained
+            if (!isRetained) {
+                device.lastSeen = Date.now();
+            }
 
 
 
@@ -2210,7 +2250,12 @@
 
                 const txt = (message || '').toString().trim();
 
-                device.status = (txt === 'online') ? 'online' : 'offline';
+                // Tôn trọng LWT offline ngay cả khi retained; online retained không đủ coi là online
+                if (txt === 'offline') {
+                    device.status = 'offline';
+                } else if (txt === 'online') {
+                    if (!isRetained) device.status = 'online';
+                }
 
                 updateDeviceList();
 
@@ -2230,19 +2275,19 @@
 
                     device.data = data;
 
-                    device.status = 'online';
+                    if (!isRetained) device.status = 'online';
 
                 } else if (messageType === 'status') {
 
                     device.info = data;
 
-                    device.status = 'online';
+                    if (!isRetained) device.status = 'online';
 
                 } else if (messageType === 'settings') {
 
                     device.settings = data;
 
-                    device.status = 'online';
+                    if (!isRetained) device.status = 'online';
                     
                     console.log('📋 Received settings from BMS:', data);
 
@@ -2250,9 +2295,16 @@
 
                     device.switches = data;
 
-                    device.status = 'online';
+                    if (!isRetained) device.status = 'online';
                     
                     console.log('🔌 Received switches from BMS:', data);
+
+                } else if (messageType === 'policy') {
+
+                    device.policy = data;
+                    // policy có thể retained; không đổi status nếu retained
+                    if (!isRetained) device.status = 'online';
+                    console.log('🛡️ Received policy from admin:', data);
 
                 }
 
@@ -2297,6 +2349,12 @@
             
 
             devices.forEach((device, deviceId) => {
+                // Đánh dấu offline nếu quá hạn lastSeen (staleness window)
+                const NOW = Date.now();
+                const STALE_MS = 60000; // 60s không nhận heartbeat/data → offline
+                if (device.lastSeen && (NOW - device.lastSeen > STALE_MS)) {
+                    device.status = 'offline';
+                }
 
                 const deviceItem = createDeviceItem(device);
 
@@ -2304,6 +2362,7 @@
 
             });
 
+            // chat removed: no messages tab sync needed
         }
 
 
@@ -2404,6 +2463,8 @@
                 const sc = document.getElementById('settings-content');
                 if (se && sc){ se.style.display = 'none'; sc.style.display = ''; }
                 
+                
+
                 // Load settings từ BMS khi chọn thiết bị (delay để đảm bảo BMS sẵn sàng)
                 console.log('🔄 Loading settings from BMS for device:', deviceId);
                 setTimeout(() => {
@@ -2411,6 +2472,7 @@
                 }, 1000); // Delay 1 giây
 
                 
+
                 // Cập nhật trạng thái nút xóa
                 updateRemoveButtonState();
             }
@@ -3030,6 +3092,16 @@
             }
         }
 
+        // Xóa retained trên broker cho một thiết bị
+        function clearRetainedForDevice(deviceId){
+            if (!mqttClient || !mqttClient.connected) { showAlert('MQTT chưa kết nối', 'error'); return; }
+            const topics = ['data','status','online','settings','switches','policy'];
+            topics.forEach(t => {
+                const tp = `bms/${deviceId}/${t}`;
+                try{ mqttClient.publish(tp, '', { qos: 1, retain: true }); console.log('🧹 Cleared retained:', tp); }catch(e){ console.error('Failed clearing', tp, e); }
+            });
+        }
+
         // Xóa thiết bị được chọn
         function removeSelectedDevice() {
             if (!selectedDeviceId) {
@@ -3038,6 +3110,8 @@
             }
 
             if (confirm(`Bạn có chắc muốn xóa thiết bị ${selectedDeviceId} khỏi danh sách?`)) {
+                // Xóa retained trên broker để tránh xuất hiện lại do retained
+                clearRetainedForDevice(selectedDeviceId);
                 // Xóa thiết bị khỏi danh sách
                 devices.delete(selectedDeviceId);
                 
@@ -3057,10 +3131,15 @@
         }
 
         // Cập nhật trạng thái nút xóa thiết bị
-        function updateRemoveButtonState() {Ư
+        function updateRemoveButtonState() {
             const removeBtn = document.getElementById('remove-device-btn');
+            const policyBtn = document.getElementById('admin-policy-btn');
+            
             if (removeBtn) {
                 removeBtn.disabled = !selectedDeviceId;
+            }
+            if (policyBtn){
+                policyBtn.disabled = !selectedDeviceId;
             }
         }
 
@@ -3069,6 +3148,193 @@
         // Khởi tạo khi trang load xong
 
         document.addEventListener('DOMContentLoaded', initDashboard);
+
+        // Auto-prune thiết bị cũ không còn heartbeat
+        setInterval(() => {
+            const NOW = Date.now();
+            const PRUNE_MS = 10 * 60 * 1000; // 10 phút
+            let changed = false;
+            devices.forEach((dev, id) => {
+                if (!dev.lastSeen || (NOW - dev.lastSeen > PRUNE_MS)) {
+                    devices.delete(id);
+                    if (selectedDeviceId === id) {
+                        selectedDeviceId = null;
+                        const ws = document.getElementById('welcome-screen'); if (ws) ws.style.display = 'block';
+                        const iface = document.getElementById('bms-interface'); if (iface) iface.classList.remove('active');
+                    }
+                    changed = true;
+                }
+            });
+            if (changed) updateDeviceList();
+        }, 15000);
+
+        // ===== Admin Policy controls =====
+        function openPolicyModal(){ const m=document.getElementById('policy-modal'); if(m){ m.style.display='flex'; preloadPolicyFromDevice(); } }
+        function closePolicyModal(){ const m=document.getElementById('policy-modal'); if(m){ m.style.display='none'; } }
+        
+        // ===== Admin Emergency Controls =====
+        function stopESP32() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            if (!selectedDeviceId) {
+                showAlert('Chưa chọn thiết bị', 'error');
+                return;
+            }
+            
+            if (confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn NGƯNG HOẠT ĐỘNG ESP32?\n\nESP32 sẽ không nhận và gửi tín hiệu nữa!\n\nCó thể mở khóa lại bằng nút "Mở khóa ESP32"!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'stop_esp32',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh ngưng ESP32: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh NGƯNG ESP32!', 'success');
+                        console.log('🛑 Admin emergency: Stop ESP32 command sent');
+                        // Show unlock button
+                        document.getElementById('modal-admin-stop-esp32-btn').style.display = 'none';
+                        document.getElementById('modal-admin-unlock-esp32-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        
+        function stopBMS() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            if (!selectedDeviceId) {
+                showAlert('Chưa chọn thiết bị', 'error');
+                return;
+            }
+            
+            if (confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn NGƯNG HOẠT ĐỘNG BMS JK?\n\nBMS JK sẽ ngừng sạc/xả/cân bằng/sưởi!\n\nCó thể mở khóa lại bằng nút "Mở khóa BMS"!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'stop_bms',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh ngưng BMS: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh NGƯNG BMS JK!', 'success');
+                        console.log('🛑 Admin emergency: Stop BMS command sent');
+                        // Show unlock button
+                        document.getElementById('modal-admin-stop-bms-btn').style.display = 'none';
+                        document.getElementById('modal-admin-unlock-bms-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        
+        function unlockESP32() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            if (!selectedDeviceId) {
+                showAlert('Chưa chọn thiết bị', 'error');
+                return;
+            }
+            
+            if (confirm('🔓 Bạn có chắc chắn muốn MỞ KHÓA ESP32?\n\nESP32 sẽ hoạt động bình thường trở lại!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'unlock_esp32',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh mở khóa ESP32: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh MỞ KHÓA ESP32!', 'success');
+                        console.log('🔓 Admin emergency: Unlock ESP32 command sent');
+                        // Show stop button
+                        document.getElementById('modal-admin-unlock-esp32-btn').style.display = 'none';
+                        document.getElementById('modal-admin-stop-esp32-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        
+        function unlockBMS() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            if (!selectedDeviceId) {
+                showAlert('Chưa chọn thiết bị', 'error');
+                return;
+            }
+            
+            if (confirm('🔓 Bạn có chắc chắn muốn MỞ KHÓA BMS JK?\n\nBMS JK sẽ hoạt động bình thường trở lại!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'unlock_bms',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh mở khóa BMS: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh MỞ KHÓA BMS JK!', 'success');
+                        console.log('🔓 Admin emergency: Unlock BMS command sent');
+                        // Show stop button
+                        document.getElementById('modal-admin-unlock-bms-btn').style.display = 'none';
+                        document.getElementById('modal-admin-stop-bms-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        function getCheckedValues(selector){ return Array.from(document.querySelectorAll(selector)).filter(x=>x.checked).map(x=>x.value); }
+        function preloadPolicyFromDevice(){
+            try{
+                if (!selectedDeviceId) return;
+                const dev = devices.get(selectedDeviceId);
+                const p = (dev && dev.policy) || {};
+                const disMon = (p.allow_monitoring === false);
+                const disSet = (p.allow_settings === false);
+                const disabledGroups = Array.isArray(p.disabled_setting_groups) ? p.disabled_setting_groups : [];
+                const m=document.getElementById('policy-modal'); if(!m) return;
+                const cbMon = document.getElementById('policy-disallow-monitoring'); if(cbMon) cbMon.checked = !!disMon;
+                const cbSet = document.getElementById('policy-disallow-settings'); if(cbSet) cbSet.checked = !!disSet;
+                document.querySelectorAll('.policy-setting-item').forEach(el=>{ el.checked = disabledGroups.includes(el.value); });
+            }catch(e){ /* ignore */ }
+        }
+        function savePolicy(){
+            if (!mqttClient || !mqttClient.connected){ showAlert('MQTT chưa kết nối', 'error'); return; }
+            if (!selectedDeviceId){ showAlert('Chưa chọn thiết bị', 'error'); return; }
+            const disMon = !!document.getElementById('policy-disallow-monitoring')?.checked;
+            const disSet = !!document.getElementById('policy-disallow-settings')?.checked;
+            const groups = getCheckedValues('.policy-setting-item');
+            const payload = {
+                allow_monitoring: !disMon,
+                allow_settings: !disSet,
+                disabled_setting_groups: groups
+            };
+            const topic = `bms/${selectedDeviceId}/policy`;
+            try{
+                mqttClient.publish(topic, JSON.stringify(payload), { qos:1, retain:true });
+                showAlert('Đã lưu chính sách admin', 'success');
+                closePolicyModal();
+            }catch(e){ showAlert('Lỗi gửi policy', 'error'); }
+        }
+
+        // chat removed: no chat-related helpers
 
     </script>
 
