@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JK BMS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -416,12 +418,12 @@
         /* Responsive */
         @media (max-width: 1200px) {
             .monitor-grid { grid-template-columns: 1fr; }
-            .main-metrics { grid-column: 1; }
-            .cell-voltages { grid-column: 1; }
-            .cell-resistances { grid-column: 1; }
-            .temperature-panel { grid-column: 1; }
-            .capacity-info { grid-column: 1; }
-            .status-indicators { grid-column: 1; }
+            .main-metrics { grid-column: 1; grid-row: 1; }
+            .temperature-panel { grid-column: 1; grid-row: 2; }
+            .capacity-info { grid-column: 1; grid-row: 3; }
+            .cell-voltages { grid-column: 1; grid-row: 4; }
+            .cell-resistances { grid-column: 1; grid-row: 5; }
+            .status-indicators { grid-column: 1; grid-row: 6; }
             .capacity-info .metric-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
@@ -448,12 +450,158 @@
         .status.discharging { background: #FF9800; color: white; }
         .status.balancing { background: #9C27B0; color: white; }
 
+        /* Charts Tab Styles */
+        #charts-tab {
+            padding: 20px;
+        }
+
+        .charts-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .chart-controls-panel {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .chart-controls-panel h3 {
+            color: #e5e7eb;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .control-group select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 14px;
+            min-width: 120px;
+        }
+
+        .control-group select:focus {
+            outline: none;
+            border-color: #a8dadc;
+            box-shadow: 0 0 0 2px rgba(168, 218, 220, 0.2);
+        }
+
+        .chart-info {
+            text-align: center;
+            font-size: 0.9em;
+            color: #94a3b8;
+            padding: 10px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-info span {
+            color: #a8dadc;
+            font-weight: 600;
+        }
+
+        .chart-panel {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .chart-panel h4 {
+            color: #e5e7eb;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .chart-container canvas {
+            background: transparent;
+        }
+
+        /* Responsive Charts */
+        @media (max-width: 768px) {
+            .chart-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                justify-content: center;
+            }
+            
+            .chart-container {
+                height: 150px;
+            }
+        }
+
         .cell-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
             gap: 10px;
             margin-top: 15px;
         }
+
+        /* Center controls and enhance button vibrancy in control card */
+        .control-sections .controls { display:flex; justify-content:center; gap:12px; }
+        #monitor-tab .card.status-indicators .btn { border:none; color:#fff; font-weight:600; letter-spacing:.3px; }
+        #monitor-tab .card.status-indicators .btn-danger {
+            background: linear-gradient(135deg, #ff4d4d, #ff1f3d);
+            box-shadow: 0 8px 18px rgba(255, 31, 61, 0.35);
+        }
+        #monitor-tab .card.status-indicators .btn-danger:hover { filter: brightness(1.08); box-shadow: 0 10px 22px rgba(255,31,61,0.45); }
+        #monitor-tab .card.status-indicators .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 8px 18px rgba(16,185,129,0.35);
+        }
+        #monitor-tab .card.status-indicators .btn-success:hover { filter: brightness(1.08); box-shadow: 0 10px 22px rgba(16,185,129,0.45); }
+        #monitor-tab .card.status-indicators .btn-warning {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 8px 18px rgba(124,58,237,0.35);
+            color:#fff;
+        }
+        #monitor-tab .card.status-indicators .btn-warning:hover { filter: brightness(1.08); box-shadow: 0 10px 22px rgba(124,58,237,0.45); }
+        #monitor-tab .card.status-indicators .btn-info {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            box-shadow: 0 8px 18px rgba(6,182,212,0.35);
+            color:#083344;
+        }
+        #monitor-tab .card.status-indicators .btn-info:hover { filter: brightness(1.08); box-shadow: 0 10px 22px rgba(6,182,212,0.45); }
 
         .cell {
             background: #f5f5f5;
@@ -1634,9 +1782,11 @@
 
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="showTab('monitor')"> Thông số pin </button>
-            <button class="tab-btn" onclick="showTab('settings')">Cài đặt </button>
-            <button class="tab-btn" onclick="showTab('notifications')">Thông báo</button>
+            <button id="btn-monitor" class="tab-btn active" onclick="showTab('monitor', this)">THÔNG SỐ PIN</button>
+            <button id="btn-charts" class="tab-btn" onclick="showTab('charts', this)">ĐỒ THỊ</button>
+            <button id="btn-settings" class="tab-btn" onclick="showTab('settings', this)">CÀI ĐẶT</button>
+            <button id="btn-notifications" class="tab-btn" onclick="showTab('notifications', this)">THÔNG BÁO</button>
+            
         </div>
 
         <div class="status-bar">
@@ -1866,7 +2016,7 @@
         <!-- Settings Password Modal -->
         <div id="settings-lock-modal" class="settings-lock-modal" style="display:none;">
             <div class="settings-lock-content">
-                <h3 class="settings-lock-title" id="settings-lock-title">🔒 Mở khóa cài đặt</h3>
+                <h3 class="settings-lock-title" id="settings-lock-title"> Mở khóa cài đặt</h3>
                 <p class="settings-lock-desc" id="settings-lock-desc">Vui lòng nhập mật khẩu để truy cập vào phần cài đặt hệ thống.</p>
                 <input type="password" id="settings-password" class="settings-lock-input" placeholder="Nhập mật khẩu" onkeypress="if(event.key==='Enter') unlockSettings()" />
                 <div class="settings-lock-buttons">
@@ -1874,6 +2024,59 @@
                     <button class="settings-lock-btn settings-lock-btn-primary" onclick="unlockSettings()" id="settings-lock-unlock">Mở khóa</button>
                 </div>
                 <div id="settings-lock-error" class="settings-lock-error"></div>
+            </div>
+        </div>
+
+        <!-- Charts Tab Content -->
+        <div id="charts-tab" class="tab-content">
+            <div class="charts-container">
+                <!-- Chart Controls -->
+                <div class="chart-controls-panel">
+                    <h3> Biểu đồ dữ liệu theo thời gian</h3>
+                    <div class="chart-controls">
+                        <div class="control-group">
+                            <label for="chart-timeframe">Khoảng thời gian:</label>
+                            <select id="chart-timeframe" onchange="changeChartTimeframe()">
+                                <option value="1h">1 giờ</option>
+                                <option value="6h">6 giờ</option>
+                                <option value="24h">24 giờ</option>
+                                <option value="7d" selected>7 ngày</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <button class="btn btn-primary" onclick="exportChartData()"> Xuất CSV</button>
+                            <button class="btn btn-warning" onclick="clearChartData()"> Xóa dữ liệu</button>
+                        </div>
+                    </div>
+                    <div class="chart-info">
+                        <span id="chart-data-count">0</span> điểm dữ liệu | 
+                        Cập nhật lần cuối: <span id="chart-last-update">--</span>
+                    </div>
+                </div>
+
+                <!-- Voltage Chart -->
+                <div class="chart-panel">
+                    <h4> Điện áp pin (V)</h4>
+                    <div class="chart-container">
+                        <canvas id="voltageChart" width="800" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Current Chart -->
+                <div class="chart-panel">
+                    <h4> Dòng điện (A)</h4>
+                    <div class="chart-container">
+                        <canvas id="currentChart" width="800" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Power Chart -->
+                <div class="chart-panel">
+                    <h4> Công suất (W)</h4>
+                    <div class="chart-container">
+                        <canvas id="powerChart" width="800" height="200"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -2444,7 +2647,31 @@
                     <div class="alert" id="no-alerts-text">Không có cảnh báo</div>
                 </div>
             </div>
+            
+            <!-- Admin Emergency Controls -->
+            <div class="card" style="margin-top: 20px; border: 2px solid #ff6b6b;">
+                <h3 style="color: #ff6b6b; text-align: center;"> Admin Emergency Controls</h3>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn btn-danger" id="admin-stop-esp32-btn" onclick="stopESP32()" style="margin: 10px; padding: 15px 25px; font-size: 16px; font-weight: bold;">
+                         Ngưng ESP32
+                    </button>
+                    <button class="btn btn-success" id="admin-unlock-esp32-btn" onclick="unlockESP32()" style="margin: 10px; padding: 15px 25px; font-size: 16px; font-weight: bold; display:none;">
+                         Mở khóa ESP32
+                    </button>
+                    <button class="btn btn-danger" id="admin-stop-bms-btn" onclick="stopBMS()" style="margin: 10px; padding: 15px 25px; font-size: 16px; font-weight: bold;">
+                         Ngưng BMS JK
+                    </button>
+                    <button class="btn btn-success" id="admin-unlock-bms-btn" onclick="unlockBMS()" style="margin: 10px; padding: 15px 25px; font-size: 16px; font-weight: bold; display:none;">
+                         Mở khóa BMS
+                    </button>
+                </div>
+                <div style="text-align: center; color: #ff6b6b; font-size: 14px; margin-top: 10px;">
+                     CẢNH BÁO: Các nút này sẽ NGƯNG HOẠT ĐỘNG thiết bị!
+                </div>
+            </div>
         </div>
+
+        
 
                 <div style="text-align: center; margin-top: 30px;">
                     <span id="settings-msg" style="color:#f44336;font-weight:bold;"></span>
@@ -2463,6 +2690,17 @@
         }
         let autoRefresh = true;
         let refreshInterval;
+
+        // ========== Chat (Messages) ==========
+        function chatKey(deviceId){ return `chat_${deviceId}`; }
+
+        function loadChatHistory(){ /* chat removed */ }
+
+        function saveChatMessage(message){ /* chat removed */ }
+
+        function appendChatMessage(data, from){ /* chat removed */ }
+
+        function sendChatMessage(){ /* chat removed */ }
 
         // MQTT Configuration
         const mqttConfig = {
@@ -2484,6 +2722,19 @@
         let devices = new Map(); // deviceId -> deviceData
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
+
+        // Charts Global variables
+        let voltageChart = null;
+        let currentChart = null;
+        let powerChart = null;
+        let chartData = {
+            labels: [],
+            voltage: [],
+            current: [],
+            power: []
+        };
+        const MAX_DATA_POINTS = 60480; // 1 tuần với 10s interval
+        let chartTimeframe = '7d';
         
         // Update device name display
         function updateDeviceNameDisplay() {
@@ -2508,7 +2759,7 @@
             }
             const disp = document.getElementById('device-name-display');
             if (disp) disp.textContent = selectedDeviceId || '--';
-            console.log('🎯 Using device id (URL/localStorage only):', selectedDeviceId || '(none)');
+            console.log(' Using device id (URL/localStorage only):', selectedDeviceId || '(none)');
         }
 
 
@@ -2529,6 +2780,9 @@
             // Initialize app immediately (no password required)
             initializeApp();
             
+            // Initialize charts
+            initializeCharts();
+            
             // Setup settings if already unlocked
             if (settingsUnlocked()) {
                 if (document.getElementById('settings-tab').classList.contains('active')) {
@@ -2548,9 +2802,9 @@
         // MQTT Connection
         function connectMQTT() {
             try {
-                console.log('🔌 Attempting MQTT connection...');
+                console.log(' Attempting MQTT connection...');
                 const url = `wss://${mqttConfig.host}:${mqttConfig.port}${mqttConfig.path}`;
-                console.log('🌐 MQTT URL:', url);
+                console.log(' MQTT URL:', url);
                 
                 mqttClient = mqtt.connect(url, {
                     clientId: mqttConfig.clientId,
@@ -2561,12 +2815,12 @@
                 });
 
                 mqttClient.on('connect', () => {
-                    console.log('✅ MQTT kết nối thành công!');
+                    console.log(' MQTT kết nối thành công!');
                     updateConnectionStatus(true);
                     reconnectAttempts = 0;
                     
                     if (allowDiscovery){
-                        console.log('📡 Discovery enabled: subscribing wildcard topics temporarily...');
+                        console.log(' Discovery enabled: subscribing wildcard topics temporarily...');
                         mqttClient.subscribe('bms/+/status');
                         mqttClient.subscribe('bms/+/online');
                         mqttClient.subscribe('bms/+/data');
@@ -2589,7 +2843,7 @@
                                     selectedDeviceId = devId; resolvedDevice = true; allowDiscovery = false;
                                     localStorage.setItem('setup_device_id', devId);
                                     const disp = document.getElementById('device-name-display'); if (disp) disp.textContent = devId;
-                                    console.log('🎯 Auto-selected configured device via discovery:', devId);
+                                    console.log(' Auto-selected configured device via discovery:', devId);
                                     // Subscribe to device-specific topics and request data
                                     subscribeDeviceTopics(devId);
                                     requestData();
@@ -2598,7 +2852,10 @@
                             }
                         }
                     }catch(e){ /* ignore */ }
-                    handleMQTTMessage(topic, message.toString());
+                    const payload = message.toString();
+                    // chat removed: ignore chat topics entirely
+                    if (topic.startsWith(`bms/${selectedDeviceId}/chat/`)) return;
+                    handleMQTTMessage(topic, payload);
                 });
 
                 mqttClient.on('error', (error) => {
@@ -2625,7 +2882,7 @@
         // Subscribe to all specific topics for a given device and stop discovery if active
         function subscribeDeviceTopics(deviceId){
             if (!mqttClient || !mqttClient.connected){
-                console.warn('⚠️ Cannot subscribe, MQTT not connected');
+                console.warn(' Cannot subscribe, MQTT not connected');
                 return;
             }
             try{
@@ -2642,29 +2899,109 @@
                 mqttClient.subscribe(`bms/${deviceId}/online`);
                 mqttClient.subscribe(`bms/${deviceId}/settings`);
                 mqttClient.subscribe(`bms/${deviceId}/switches`);
-                console.log('📡 Subscribed to device topics:', deviceId);
+                mqttClient.subscribe(`bms/${deviceId}/policy`);
+                console.log(' Subscribed to device topics:', deviceId);
+                // load chat history immediately on subscribe
+                loadChatHistory();
             }catch(e){
-                console.error('❌ Failed subscribing to device topics:', e);
+                console.error(' Failed subscribing to device topics:', e);
+            }
+        }
+
+        // Admin policy state (defaults allow all)
+        let policy = { allow_settings: true, allow_monitoring: true, disabled_setting_groups: [] };
+
+        function applyPolicy(){
+            // Settings policy
+            const settingsTab = document.getElementById('settings-tab');
+            if (settingsTab){
+                const disabledAll = !policy.allow_settings;
+                // Remove any overlay; use value masking instead
+                const prevOverlay = document.getElementById('settings-overlay');
+                if (prevOverlay) prevOverlay.remove();
+                settingsTab.querySelectorAll('input, select, textarea, button').forEach(el=>{
+                    if (el.closest('.nav-tabs')) return;
+                    el.disabled = disabledAll;
+                    if (el.tagName === 'BUTTON'){
+                        el.style.pointerEvents = disabledAll ? 'none' : '';
+                        el.style.opacity = disabledAll ? '0.6' : '';
+                    }
+                    if (disabledAll && el.tagName === 'INPUT' && el.type === 'number'){
+                        el.value = '';
+                        el.placeholder = '??';
+                    }
+                });
+                if (!disabledAll){
+                    const groups = new Set(policy.disabled_setting_groups || []);
+                    const groupMap = {
+                        voltage: ['cell-overvoltage','cell-overvoltage-recovery','cell-undervoltage','cell-undervoltage-recovery','balance-trigger-voltage','balance-start-voltage','cell-soc100-voltage','cell-soc0-voltage','cell-request-charge-voltage','cell-request-float-voltage','smart-sleep-voltage','power-off-voltage','cell-count','capacity'],
+                        current: ['max-balance-current','charge-current','discharge-current','current-calibration'],
+                        time_delay: ['charge-ocp-delay-s','charge-ocpr-time-s','discharge-ocp-delay-s','discharge-ocpr-time-s','scp-delay-us','scp-recovery-time-s','request-charge-voltage-time-h','request-float-voltage-time-h','discharge-precharge-time-s','voltage-calibration'],
+                        temperature: ['charge-overtemp','charge-overtemp-recovery','discharge-overtemp','discharge-overtemp-recovery','charge-undertemp','charge-undertemp-recovery','mos-overtemp','mos-overtemp-recovery'],
+                        switches: ['charge-mosfet-on','discharge-mosfet-on','balancer-on','heating-on','disable-temperature-sensors','display-always-on','smart-sleep-on','disable-pcl-module','timed-stored-data','charging-float-mode','emergency-mode']
+                    };
+                    Object.entries(groupMap).forEach(([group, ids])=>{
+                        const dis = groups.has(group);
+                        ids.forEach(id=>{
+                            const el = document.getElementById(id);
+                            if (el){
+                                el.disabled = dis || el.disabled;
+                                if (dis && el.tagName === 'INPUT' && el.type === 'number'){
+                                    el.value = '';
+                                    el.placeholder = '??';
+                                }
+                                const wrap = el.closest('.input-with-button');
+                                if (wrap){ const btn = wrap.querySelector('button'); if (btn){ btn.disabled = dis || btn.disabled; btn.style.pointerEvents = (dis ? 'none' : (btn.style.pointerEvents||'')); btn.style.opacity = (dis ? '0.6' : (btn.style.opacity||'')); } }
+                            }
+                        });
+                    });
+                }
+            }
+            // Monitoring policy
+            const monitorTab = document.getElementById('monitor-tab');
+            if (monitorTab){
+                const bannerId = 'monitor-block-banner';
+                let banner = document.getElementById(bannerId);
+                if (!policy.allow_monitoring){
+                    if (!banner){
+                        banner = document.createElement('div');
+                        banner.id = bannerId;
+                        banner.style.cssText = 'margin:10px 20px; padding:12px; border-radius:8px; background:#ffe9e9; color:#a00; font-weight:600; text-align:center;';
+                        banner.textContent = 'Theo dõi đã bị chặn bởi Admin. Liên hệ 0907738988 để mở quyền.';
+                        monitorTab.prepend(banner);
+                    }
+                    // Disable interactions and mask values across all metric blocks
+                    monitorTab.querySelectorAll('button, input, select, textarea').forEach(el=>{ el.disabled = true; el.style.pointerEvents='none'; el.style.opacity='0.6'; });
+                    const selectors = ['.value', '.cell-value', '#battery-voltage','#current','#soc','#power','#temp1','#temp2','#temp-mos',
+                        '#min-voltage','#max-voltage','#avg-voltage','#delta-voltage',
+                        '#min-resistance','#max-resistance','#avg-resistance','#delta-resistance',
+                        '#current-capacity','#total-capacity','#charge-cycles'];
+                    selectors.forEach(sel=>{ document.querySelectorAll(sel).forEach(el=>{ el.textContent='??'; }); });
+                    document.querySelectorAll('#monitor-tab .metric-value').forEach(el=>{ el.textContent='??'; });
+                } else {
+                    if (banner) banner.remove();
+                    monitorTab.querySelectorAll('button, input, select, textarea').forEach(el=>{ el.disabled = false; el.style.pointerEvents=''; el.style.opacity=''; });
+                }
             }
         }
 
         // Handle MQTT Messages
         function handleMQTTMessage(topic, message) {
             try {
-                console.log(`📨 Received MQTT: ${topic} -> ${message.substring(0, 100)}...`);
+                console.log(` Received MQTT: ${topic} -> ${message.substring(0, 100)}...`);
                 const topicParts = topic.split('/');
                 const deviceId = topicParts[1];
                 const messageType = topicParts[2];
 
-                console.log(`🔍 Parsed topic - Device: ${deviceId}, Type: ${messageType}`);
+                console.log(` Parsed topic - Device: ${deviceId}, Type: ${messageType}`);
 
                 if (deviceId === selectedDeviceId) {
-                    console.log(`✅ Processing message for selected device: ${selectedDeviceId}`);
+                    console.log(` Processing message for selected device: ${selectedDeviceId}`);
                     switch (messageType) {
                         case 'data':
-                            console.log('📊 Processing data message...');
+                            console.log(' Processing data message...');
                             const data = JSON.parse(message);
-                            console.log('📊 Data received:', data);
+                            console.log(' Data received:', data);
                 updateUI(data);
                             break;
                         case 'status':
@@ -2675,16 +3012,26 @@
                             updateConnectionStatus(message === 'online');
                             break;
                         case 'settings':
-                            console.log('📋 Received settings from BMS:', message);
+                            console.log(' Received settings from BMS:', message);
                             const settings = JSON.parse(message);
-                            console.log('📋 Parsed settings object:', settings);
-                            console.log('📋 Settings keys:', Object.keys(settings));
+                            console.log(' Parsed settings object:', settings);
+                            console.log(' Settings keys:', Object.keys(settings));
                             updateSettingsUI(settings);
                             break;
                         case 'switches':
-                            console.log('🔌 Received switches from BMS:', message);
+                            console.log(' Received switches from BMS:', message);
                             const switches = JSON.parse(message);
                             updateSwitchesUI(switches);
+                            break;
+                        case 'policy':
+                            try{
+                                const p = JSON.parse(message);
+                                policy.allow_settings = (p.allow_settings !== false);
+                                policy.allow_monitoring = (p.allow_monitoring !== false);
+                                policy.disabled_setting_groups = Array.isArray(p.disabled_setting_groups)? p.disabled_setting_groups : [];
+                                console.log(' Applied policy:', policy);
+                                applyPolicy();
+                            }catch(e){ console.warn('Invalid policy payload'); }
                             break;
                     }
                 }
@@ -2697,11 +3044,11 @@
         function requestData() {
             if (mqttClient && mqttClient.connected) {
                 const topic = `bms/${selectedDeviceId}/cmd/action`;
-                console.log(`📤 Publishing get_data command to: ${topic}`);
+                console.log(` Publishing get_data command to: ${topic}`);
                 mqttClient.publish(topic, 'get_data', { qos: 1 });
-                console.log(`✅ Đã gửi lệnh get_data tới ${topic}`);
+                console.log(` Đã gửi lệnh get_data tới ${topic}`);
             } else {
-                console.log('❌ MQTT client not connected, cannot request data');
+                console.log(' MQTT client not connected, cannot request data');
             }
         }
 
@@ -2720,7 +3067,7 @@
 
         // Update device status
         function updateDeviceStatus(status) {
-            console.log('📡 Updating device status:', status);
+            console.log(' Updating device status:', status);
             // Update IP address if available
             if (status.wifi_ssid) {
                 document.getElementById('ip-address').textContent = `WiFi: ${status.wifi_ssid}`;
@@ -2732,7 +3079,10 @@
 
         // Update settings UI
         function updateSettingsUI(settings) {
-            console.log('🔧 Updating settings UI with data:', settings);
+            if (policy && policy.allow_settings === false) {
+                return;
+            }
+            console.log(' Updating settings UI with data:', settings);
             
             let updatedCount = 0;
             let missingCount = 0;
@@ -2743,10 +3093,10 @@
                 if (element) {
                     const newValue = value ?? defaultValue;
                     element.value = newValue;
-                    console.log(`✅ Updated ${id}: ${newValue}`);
+                    console.log(` Updated ${id}: ${newValue}`);
                     updatedCount++;
                 } else {
-                    console.warn(`❌ Element not found: ${id}`);
+                    console.warn(` Element not found: ${id}`);
                     missingCount++;
                 }
             };
@@ -2795,12 +3145,15 @@
             updateInput('mos-overtemp', settings.mos_overtemp, '80');
             updateInput('mos-overtemp-recovery', settings.mos_overtemp_recovery, '70');
             
-            console.log(`✅ Settings UI updated from MQTT - Updated: ${updatedCount}, Missing: ${missingCount}`);
+            console.log(` Settings UI updated from MQTT - Updated: ${updatedCount}, Missing: ${missingCount}`);
         }
 
         // Update switches UI
         function updateSwitchesUI(switches) {
-            console.log('🔧 Updating switches UI with data:', switches);
+            if (policy && policy.allow_settings === false) {
+                return;
+            }
+            console.log(' Updating switches UI with data:', switches);
             const setc = (id, val) => { 
                 const el = document.getElementById(id); 
                 if (el) el.checked = !!val; 
@@ -2818,16 +3171,20 @@
             setc('charging-float-mode', switches.charging_float_mode);
             setc('emergency-mode', switches.emergency_mode);
             
-            console.log('Switches UI updated from MQTT');
+            console.log(' Switches UI updated from MQTT');
         }
 
         // Cập nhật UI
         function updateUI(data) {
-            console.log('🎨 Updating UI with data:', data);
-            console.log('🔍 Data fields available:', Object.keys(data));
-            console.log('📊 Key values - v:', data.v, 'i:', data.i, 'soc:', data.soc, 'p:', data.p);
+            console.log(' Updating UI with data:', data);
+            console.log(' Data fields available:', Object.keys(data));
+            console.log(' Key values - v:', data.v, 'i:', data.i, 'soc:', data.soc, 'p:', data.p);
             // Cập nhật trạng thái kết nối (MQTT data không có trường connected)
             updateConnectionStatus(true);
+            if (policy && policy.allow_monitoring === false) {
+                maskMonitorValues();
+                return;
+            }
 
             // Cập nhật trạng thái emergency buttons
             if (data.emergency_active !== undefined) {
@@ -2840,7 +3197,7 @@
             const socEl = document.getElementById('soc');
             const powerEl = document.getElementById('power');
             
-            console.log('🔍 Elements found:', {
+            console.log(' Elements found:', {
                 voltage: !!voltageEl,
                 current: !!currentEl,
                 soc: !!socEl,
@@ -2858,7 +3215,7 @@
             if (currentCapacityEl) currentCapacityEl.textContent = (data.cap_cur ?? '--') === '--' ? '--' : (+data.cap_cur).toFixed(2);
             if (totalCapacityEl) totalCapacityEl.textContent = (data.cap_tot ?? '--') === '--' ? '--' : (+data.cap_tot).toFixed(2);
             
-            console.log('✅ Updated main values:', {
+            console.log(' Updated main values:', {
                 voltage: data.v,
                 current: data.i,
                 soc: data.soc,
@@ -2873,7 +3230,7 @@
             document.getElementById('temp-mos').textContent = data.temp_mos || '--';
 
             // Cập nhật thông tin cell (min_v, max_v, avg_v đã là Volt)
-            console.log('🔋 Cell voltage summary:', {
+            console.log(' Cell voltage summary:', {
                 min_v: data.min_v,
                 max_v: data.max_v,
                 avg_v: data.avg_v,
@@ -2889,11 +3246,11 @@
 
 
             // Cập nhật cell voltages
-            console.log('🔋 Cell voltages data (cv):', data.cv);
-            console.log('🔋 Cell voltages converted to V:', data.cv ? data.cv.map(v => (v/1000).toFixed(3)) : 'No data');
+            console.log(' Cell voltages data (cv):', data.cv);
+            console.log(' Cell voltages converted to V:', data.cv ? data.cv.map(v => (v/1000).toFixed(3)) : 'No data');
             updateCellVoltages(data.cv || []);
             // Cập nhật cell resistances
-            console.log('⚡ Cell resistances data (cr):', data.cr);
+            console.log(' Cell resistances data (cr):', data.cr);
             updateCellResistances(data);
 
             // Cập nhật trạng thái
@@ -2901,16 +3258,19 @@
 
             // Cập nhật cảnh báo
             updateAlerts(data.alerts || []);
+
+            // Cập nhật đồ thị
+            saveChartData(data);
         }
 
         // Cập nhật trạng thái kết nối
         function updateConnectionStatus(connected) {
             const status = document.getElementById('connection-status');
             if (connected) {
-                status.textContent = '🟢 Online';
+                status.textContent = 'Online';
                 status.className = 'status-item online';
             } else {
-                status.textContent = '🔴 Offline';
+                status.textContent = ' Offline';
                 status.className = 'status-item offline';
             }
             
@@ -2919,25 +3279,36 @@
 
         // Cập nhật cell voltages
         function updateCellVoltages(cellVoltages) {
-            console.log('🔋 Updating cell voltages:', cellVoltages);
+            console.log(' Updating cell voltages:', cellVoltages);
             const grid = document.getElementById('cell-grid');
             if (!grid) {
-                console.log('❌ Cell grid element not found');
+                console.log(' Cell grid element not found');
                 return;
             }
             grid.innerHTML = '';
 
-            cellVoltages.forEach((voltage, index) => {
+            const safeArray = Array.isArray(cellVoltages) ? cellVoltages : [];
+            if (safeArray.length === 0) {
+                for (let i=0;i<16;i++){
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.innerHTML = `
+                        <div class="cell-number">Cell ${i + 1}</div>
+                        <div class="cell-value">--</div>
+                    `;
+                    grid.appendChild(cell);
+                }
+                return;
+            }
+
+            safeArray.forEach((voltage, index) => {
                 if (voltage > 0) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    
-                    // Thêm class dựa trên voltage (chuyển đổi từ mV sang V)
                     const voltageV = voltage / 1000;
                     if (voltageV > 3.65) cell.classList.add('voltage-high');
                     else if (voltageV < 3.0) cell.classList.add('voltage-low');
                     else cell.classList.add('active');
-
                     cell.innerHTML = `
                         <div class="cell-number">Cell ${index + 1}</div>
                         <div class="cell-value">${(voltage / 1000).toFixed(3)}V</div>
@@ -2949,15 +3320,15 @@
 
         // Cập nhật cell resistances
         function updateCellResistances(data) {
-            console.log('⚡ Updating cell resistances with data:', data);
+            console.log(' Updating cell resistances with data:', data);
             const grid = document.getElementById('res-grid');
             if (!grid) {
-                console.log('❌ Resistance grid element not found');
+                console.log(' Resistance grid element not found');
                 return;
             }
             grid.innerHTML = '';
             const resistances = data.cr || [];
-            console.log('⚡ Cell resistances array:', resistances);
+            console.log(' Cell resistances array:', resistances);
             const minR = data.min_r;
             const maxR = data.max_r;
             const avgR = data.avg_r;
@@ -2965,7 +3336,7 @@
             // Tính delta resistance từ max - min (như dashboard.html)
             const deltaR = (typeof data.delta_r === 'number') ? data.delta_r : ((minR != null && maxR != null) ? (maxR - minR) : undefined);
             
-            console.log('⚡ Resistance values:', { minR, maxR, avgR, deltaR });
+            console.log(' Resistance values:', { minR, maxR, avgR, deltaR });
 
             // Cập nhật các giá trị tổng quan
             const minEl = document.getElementById('min-resistance');
@@ -2978,6 +3349,19 @@
             if (deltaEl) deltaEl.textContent = (deltaR !== undefined && deltaR >= 0) ? deltaR.toFixed(3) : '--';
 
             // Hiển thị từng cell
+            if (!Array.isArray(resistances) || resistances.length === 0){
+                for (let i=0;i<16;i++){
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.innerHTML = `
+                        <div class="cell-number">Cell ${i + 1}</div>
+                        <div class="cell-value">--</div>
+                    `;
+                    grid.appendChild(cell);
+                }
+                return;
+            }
+
             resistances.forEach((r, index) => {
                 if (r > 0) {
                     const cell = document.createElement('div');
@@ -2993,7 +3377,7 @@
 
         // Cập nhật trạng thái
         function updateStatus(data) {
-            console.log('📊 Updating status with data:', {
+            console.log(' Updating status with data:', {
                 chg: data.chg,
                 dchg: data.dchg,
                 bal: data.bal
@@ -3040,6 +3424,39 @@
                 alertsContainer.innerHTML = alerts.map(alert => 
                     `<div class="alert">⚠️ ${alert}</div>`
                 ).join('');
+            }
+        }
+
+        // Mask all monitor values with '??' and disable interactions when monitoring is blocked
+        function maskMonitorValues(){
+            const monitorTab = document.getElementById('monitor-tab');
+            if (!monitorTab) return;
+            monitorTab.querySelectorAll('button, input, select, textarea').forEach(el=>{ el.disabled = true; el.style.pointerEvents='none'; el.style.opacity='0.6'; });
+            const selectors = ['.value', '.cell-value', '#battery-voltage','#current','#soc','#power','#temp1','#temp2','#temp-mos',
+                '#min-voltage','#max-voltage','#avg-voltage','#delta-voltage',
+                '#min-resistance','#max-resistance','#avg-resistance','#delta-resistance',
+                '#current-capacity','#total-capacity','#charge-cycles'];
+            selectors.forEach(sel=>{ document.querySelectorAll(sel).forEach(el=>{ el.textContent='??'; }); });
+            document.querySelectorAll('#monitor-tab .metric-value').forEach(el=>{ el.textContent='??'; });
+            const cellGrid = document.getElementById('cell-grid');
+            if (cellGrid){
+                cellGrid.innerHTML='';
+                for (let i=0;i<16;i++){
+                    const c = document.createElement('div');
+                    c.className = 'cell';
+                    c.innerHTML = `<div class=\"cell-number\">Cell ${i+1}</div><div class=\"cell-value\">??</div>`;
+                    cellGrid.appendChild(c);
+                }
+            }
+            const resGrid = document.getElementById('res-grid');
+            if (resGrid){
+                resGrid.innerHTML='';
+                for (let i=0;i<16;i++){
+                    const c = document.createElement('div');
+                    c.className = 'cell';
+                    c.innerHTML = `<div class=\"cell-number\">Cell ${i+1}</div><div class=\"cell-value\">??</div>`;
+                    resGrid.appendChild(c);
+                }
             }
         }
 
@@ -3167,8 +3584,8 @@
                     const lang7 = document.getElementById('language-selector').value;
                     closeSetupConfirm();
                     alert(lang7 === 'vi'
-                        ? '✅ Đã gửi lệnh vào Setup Mode qua MQTT!\n\nESP32 sẽ khởi động lại trong 3 giây.\n\nSau đó:\n1. Kết nối WiFi "ESP32-BMS-Setup" (password: 12345678)\n2. Truy cập http://192.168.4.1'
-                        : '✅ Setup Mode command sent via MQTT!\n\nESP32 will reboot in 3 seconds.\n\nThen:\n1. Connect WiFi "ESP32-BMS-Setup" (password: 12345678)\n2. Open http://192.168.4.1');
+                        ? ' Đã gửi lệnh vào Setup Mode qua MQTT!\n\nESP32 sẽ khởi động lại trong 3 giây.\n\nSau đó:\n1. Kết nối WiFi "ESP32-BMS-Setup" (password: 12345678)\n2. Truy cập http://192.168.4.1'
+                        : ' Setup Mode command sent via MQTT!\n\nESP32 will reboot in 3 seconds.\n\nThen:\n1. Connect WiFi "ESP32-BMS-Setup" (password: 12345678)\n2. Open http://192.168.4.1');
                         
                         // Hiển thị hướng dẫn chi tiết
                         setTimeout(() => {
@@ -3212,16 +3629,16 @@
                         }, 3000);
                     } else {
                     const lang8 = document.getElementById('language-selector').value;
-                    alert(lang8 === 'vi' ? '❌ MQTT chưa kết nối!\nVui lòng kiểm tra kết nối MQTT.' : '❌ MQTT not connected!\nPlease check your MQTT connection.');
+                    alert(lang8 === 'vi' ? ' MQTT chưa kết nối!\nVui lòng kiểm tra kết nối MQTT.' : ' MQTT not connected!\nPlease check your MQTT connection.');
                     }
                 } catch (error) {
                 const lang9 = document.getElementById('language-selector').value;
-                alert(lang9 === 'vi' ? '❌ Lỗi khi vào Setup Mode!\nVui lòng thử lại.' : '❌ Error entering Setup Mode!\nPlease try again.');
+                alert(lang9 === 'vi' ? ' Lỗi khi vào Setup Mode!\nVui lòng thử lại.' : ' Error entering Setup Mode!\nPlease try again.');
             }
         }
 
         // Tab switching
-        function showTab(tabName) {
+        function showTab(tabName, btn) {
             // Hide all tab contents
             const tabContents = document.querySelectorAll('.tab-content');
             tabContents.forEach(content => content.classList.remove('active'));
@@ -3234,7 +3651,9 @@
             document.getElementById(tabName + '-tab').classList.add('active');
             
             // Add active class to clicked button
-            event.target.classList.add('active');
+            if (btn) btn.classList.add('active');
+
+            // chat removed: no initialization for messages tab
             
             // Load settings when switching to settings tab
             if (tabName === 'settings') {
@@ -3244,7 +3663,7 @@
                     hideSettingsLock();
                     document.getElementById('settings-form').style.display = '';
                     // Reload settings from BMS every time settings tab is opened
-                    console.log('🔄 Reloading settings from BMS...');
+                    console.log(' Reloading settings from BMS...');
                 loadSettings();
                     // Cập nhật labels khi mở settings tab
                     const currentLang = localStorage.getItem('language') || 'vi';
@@ -3336,6 +3755,120 @@
             msgEl.style.color = type === 'success' ? '#4CAF50' : '#f44336';
             msgEl.style.fontWeight = 'bold';
             setTimeout(() => msgEl.textContent = '', 2000);
+        }
+
+
+        // ===== Admin Emergency Controls =====
+        function stopESP32() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            
+            if (confirm(' CẢNH BÁO: Bạn có chắc chắn muốn NGƯNG HOẠT ĐỘNG ESP32?\n\nESP32 sẽ không nhận và gửi tín hiệu nữa!\n\nCó thể mở khóa lại bằng nút "Mở khóa ESP32"!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'stop_esp32',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh ngưng ESP32: ' + err.message, 'error');
+                    } else {
+                        showAlert(' Đã gửi lệnh NGƯNG ESP32!', 'success');
+                        console.log(' Admin emergency: Stop ESP32 command sent');
+                        // Show unlock button
+                        document.getElementById('admin-stop-esp32-btn').style.display = 'none';
+                        document.getElementById('admin-unlock-esp32-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        
+        function stopBMS() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            
+            if (confirm(' CẢNH BÁO: Bạn có chắc chắn muốn NGƯNG HOẠT ĐỘNG BMS JK?\n\nBMS JK sẽ ngừng sạc/xả/cân bằng/sưởi!\n\nCó thể mở khóa lại bằng nút "Mở khóa BMS"!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'stop_bms',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh ngưng BMS: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh NGƯNG BMS JK!', 'success');
+                        console.log('🛑 Admin emergency: Stop BMS command sent');
+                        // Show unlock button
+                        document.getElementById('admin-stop-bms-btn').style.display = 'none';
+                        document.getElementById('admin-unlock-bms-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        
+        function unlockESP32() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            
+            if (confirm('🔓 Bạn có chắc chắn muốn MỞ KHÓA ESP32?\n\nESP32 sẽ hoạt động bình thường trở lại!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'unlock_esp32',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh mở khóa ESP32: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh MỞ KHÓA ESP32!', 'success');
+                        console.log('🔓 Admin emergency: Unlock ESP32 command sent');
+                        // Show stop button
+                        document.getElementById('admin-unlock-esp32-btn').style.display = 'none';
+                        document.getElementById('admin-stop-esp32-btn').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+        
+        function unlockBMS() {
+            if (!mqttClient || !mqttClient.connected) {
+                showAlert('MQTT chưa kết nối', 'error');
+                return;
+            }
+            
+            if (confirm('🔓 Bạn có chắc chắn muốn MỞ KHÓA BMS JK?\n\nBMS JK sẽ hoạt động bình thường trở lại!')) {
+                const topic = `bms/${selectedDeviceId}/cmd/emergency`;
+                const payload = {
+                    action: 'unlock_bms',
+                    timestamp: new Date().toISOString(),
+                    admin_action: true
+                };
+                
+                mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
+                    if (err) {
+                        showAlert('Lỗi gửi lệnh mở khóa BMS: ' + err.message, 'error');
+                    } else {
+                        showAlert('✅ Đã gửi lệnh MỞ KHÓA BMS JK!', 'success');
+                        console.log('🔓 Admin emergency: Unlock BMS command sent');
+                        // Show stop button
+                        document.getElementById('admin-unlock-bms-btn').style.display = 'none';
+                        document.getElementById('admin-stop-bms-btn').style.display = 'inline-block';
+                    }
+                });
+            }
         }
 
         // Hiển thị thông báo chung
@@ -3463,8 +3996,10 @@
             vi: {
                 header_subtitle: "Hệ thống giám sát và điều khiển BMS",
                 monitor_tab: "THÔNG SỐ PIN",
+                charts_tab: "ĐỒ THỊ",
                 settings_tab: "CÀI ĐẶT",
                 notifications_tab: "THÔNG BÁO",
+                messages_tab: "TIN NHẮN",
                 connecting: "Đang kết nối...",
                 not_charging: "Không sạc",
                 not_balancing: "Không cân bằng",
@@ -3641,8 +4176,10 @@
             en: {
                 header_subtitle: "BMS Monitoring and Control System",
                 monitor_tab: "BATTERY STATUS",
+                charts_tab: "CHARTS",
                 settings_tab: "SETTINGS",
                 notifications_tab: "NOTIFICATIONS",
+                messages_tab: "MESSAGES",
                 connecting: "Connecting...",
                 not_charging: "Not Charging",
                 not_balancing: "Not Balancing",
@@ -3902,12 +4439,20 @@
             }
             
             // Tab buttons (include Notifications)
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            if (tabButtons.length >= 3) {
-            tabButtons[0].textContent = t.monitor_tab;
-            tabButtons[1].textContent = t.settings_tab;
-                tabButtons[2].textContent = t.notifications_tab;
-            }
+            // Set tab labels by IDs to avoid index/order issues
+            const btnMonitor = document.getElementById('btn-monitor');
+            const btnCharts = document.getElementById('btn-charts');
+            const btnSettings = document.getElementById('btn-settings');
+            const btnNotifications = document.getElementById('btn-notifications');
+            const btnMessages = document.getElementById('btn-messages');
+            if (btnMonitor) btnMonitor.textContent = t.monitor_tab;
+            if (btnCharts) btnCharts.textContent = (t.charts_tab || (lang === 'vi' ? 'ĐỒ THỊ' : 'CHARTS'));
+            if (btnSettings) btnSettings.textContent = t.settings_tab;
+            if (btnNotifications) btnNotifications.textContent = t.notifications_tab;
+            // chat removed: no messages button
+
+            // Messages placeholders
+            // chat removed: no messages labels/placeholders
             
             // Status bar
             const statusElements = document.querySelectorAll('.status');
@@ -4451,6 +4996,363 @@
             el.value = next.toFixed(decimals);
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        // ==================== CHART FUNCTIONS ====================
+        
+        // Initialize all charts
+        function initializeCharts() {
+            initializeVoltageChart();
+            initializeCurrentChart();
+            initializePowerChart();
+            loadChartData();
+        }
+
+        // Initialize Voltage Chart
+        function initializeVoltageChart() {
+            const ctx = document.getElementById('voltageChart');
+            if (!ctx) return;
+
+            voltageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Điện áp (V)',
+                        data: chartData.voltage,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions('Điện áp (V)', '#4CAF50')
+            });
+        }
+
+        // Initialize Current Chart
+        function initializeCurrentChart() {
+            const ctx = document.getElementById('currentChart');
+            if (!ctx) return;
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Dòng điện (A)',
+                        data: chartData.current,
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions('Dòng điện (A)', '#2196F3')
+            });
+        }
+
+        // Initialize Power Chart
+        function initializePowerChart() {
+            const ctx = document.getElementById('powerChart');
+            if (!ctx) return;
+
+            powerChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Công suất (W)',
+                        data: chartData.power,
+                        borderColor: '#FF9800',
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions('Công suất (W)', '#FF9800')
+            });
+        }
+
+        // Get common chart options
+        function getChartOptions(title, color) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff',
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: color,
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            displayFormats: {
+                                hour: 'HH:mm',
+                                day: 'MMM dd'
+                            }
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            maxTicksLimit: 10
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: title,
+                            color: color
+                        },
+                        ticks: {
+                            color: color
+                        },
+                        grid: {
+                            color: color + '20'
+                        }
+                    }
+                }
+            };
+        }
+
+        // Save chart data to localStorage
+        function saveChartData(data) {
+            try {
+                const timestamp = new Date().toISOString();
+                
+                // Add new data point
+                chartData.labels.push(timestamp);
+                chartData.voltage.push(data.v || 0);
+                chartData.current.push(data.i || 0);
+                chartData.power.push(data.p || 0);
+
+                // Limit data points
+                if (chartData.labels.length > MAX_DATA_POINTS) {
+                    chartData.labels.shift();
+                    chartData.voltage.shift();
+                    chartData.current.shift();
+                    chartData.power.shift();
+                }
+
+                // Save to localStorage
+                const saveData = {
+                    labels: chartData.labels,
+                    voltage: chartData.voltage,
+                    current: chartData.current,
+                    power: chartData.power,
+                    lastUpdate: timestamp,
+                    deviceId: selectedDeviceId
+                };
+                localStorage.setItem('bmsChartData', JSON.stringify(saveData));
+
+                // Update charts
+                updateCharts();
+
+                // Update info display
+                updateChartInfo();
+
+            } catch (error) {
+                console.error('Error saving chart data:', error);
+            }
+        }
+
+        // Load chart data from localStorage
+        function loadChartData() {
+            try {
+                const savedData = localStorage.getItem('bmsChartData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    
+                    // Only load if it's for the same device
+                    if (data.deviceId === selectedDeviceId) {
+                        chartData.labels = data.labels || [];
+                        chartData.voltage = data.voltage || [];
+                        chartData.current = data.current || [];
+                        chartData.power = data.power || [];
+
+                        updateCharts();
+                        updateChartInfo();
+                        console.log(' Chart data loaded from localStorage');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+            }
+        }
+
+        // Update all charts
+        function updateCharts() {
+            if (voltageChart) {
+                voltageChart.data.labels = chartData.labels;
+                voltageChart.data.datasets[0].data = chartData.voltage;
+                voltageChart.update('none');
+            }
+            
+            if (currentChart) {
+                currentChart.data.labels = chartData.labels;
+                currentChart.data.datasets[0].data = chartData.current;
+                currentChart.update('none');
+            }
+            
+            if (powerChart) {
+                powerChart.data.labels = chartData.labels;
+                powerChart.data.datasets[0].data = chartData.power;
+                powerChart.update('none');
+            }
+        }
+
+        // Update chart info display
+        function updateChartInfo() {
+            const countEl = document.getElementById('chart-data-count');
+            const lastUpdateEl = document.getElementById('chart-last-update');
+            
+            if (countEl) {
+                countEl.textContent = chartData.labels.length;
+            }
+            
+            if (lastUpdateEl && chartData.labels.length > 0) {
+                const lastTime = new Date(chartData.labels[chartData.labels.length - 1]);
+                lastUpdateEl.textContent = lastTime.toLocaleString('vi-VN');
+            }
+        }
+
+        // Change chart timeframe
+        function changeChartTimeframe() {
+            const select = document.getElementById('chart-timeframe');
+            if (select) {
+                chartTimeframe = select.value;
+                filterChartData();
+            }
+        }
+
+        // Filter chart data based on timeframe
+        function filterChartData() {
+            const now = new Date();
+            let cutoffTime;
+
+            switch (chartTimeframe) {
+                case '1h':
+                    cutoffTime = new Date(now.getTime() - 60 * 60 * 1000);
+                    break;
+                case '6h':
+                    cutoffTime = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+                    break;
+                case '24h':
+                    cutoffTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case '7d':
+                default:
+                    cutoffTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+            }
+
+            // Filter data
+            const filteredLabels = [];
+            const filteredVoltage = [];
+            const filteredCurrent = [];
+            const filteredPower = [];
+
+            for (let i = 0; i < chartData.labels.length; i++) {
+                const timestamp = new Date(chartData.labels[i]);
+                if (timestamp >= cutoffTime) {
+                    filteredLabels.push(chartData.labels[i]);
+                    filteredVoltage.push(chartData.voltage[i]);
+                    filteredCurrent.push(chartData.current[i]);
+                    filteredPower.push(chartData.power[i]);
+                }
+            }
+
+            // Update charts with filtered data
+            if (voltageChart) {
+                voltageChart.data.labels = filteredLabels;
+                voltageChart.data.datasets[0].data = filteredVoltage;
+                voltageChart.update('none');
+            }
+            
+            if (currentChart) {
+                currentChart.data.labels = filteredLabels;
+                currentChart.data.datasets[0].data = filteredCurrent;
+                currentChart.update('none');
+            }
+            
+            if (powerChart) {
+                powerChart.data.labels = filteredLabels;
+                powerChart.data.datasets[0].data = filteredPower;
+                powerChart.update('none');
+            }
+        }
+
+        // Export chart data
+        function exportChartData() {
+            try {
+                const csvContent = generateCSV();
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `bms_data_${selectedDeviceId}_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                console.log(' Chart data exported successfully');
+            } catch (error) {
+                console.error('Error exporting chart data:', error);
+            }
+        }
+
+        // Generate CSV content
+        function generateCSV() {
+            let csv = 'Timestamp,Voltage (V),Current (A),Power (W)\n';
+            
+            for (let i = 0; i < chartData.labels.length; i++) {
+                const timestamp = new Date(chartData.labels[i]).toLocaleString('vi-VN');
+                const voltage = chartData.voltage[i] || 0;
+                const current = chartData.current[i] || 0;
+                const power = chartData.power[i] || 0;
+                
+                csv += `${timestamp},${voltage},${current},${power}\n`;
+            }
+            
+            return csv;
+        }
+
+        // Clear chart data
+        function clearChartData() {
+            if (confirm('Bạn có chắc chắn muốn xóa tất cả dữ liệu đồ thị?')) {
+                chartData.labels = [];
+                chartData.voltage = [];
+                chartData.current = [];
+                chartData.power = [];
+                
+                localStorage.removeItem('bmsChartData');
+                
+                updateCharts();
+                updateChartInfo();
+                console.log(' Chart data cleared');
+            }
         }
     </script>
 </body>
