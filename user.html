@@ -12,6 +12,8 @@
             box-sizing: border-box;
         }
 
+        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1345,7 +1347,9 @@
 
         // MQTT Global variables
         let mqttClient = null;
-        let selectedDeviceId = 'esp32_001'; // Default device ID
+        let selectedDeviceId = '';
+        let resolvedDevice = false;
+        let allowDiscovery = false;
         let devices = new Map(); // deviceId -> deviceData
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
@@ -1354,14 +1358,30 @@
         function updateDeviceNameDisplay() {
             const deviceDisplay = document.getElementById('device-name-display');
             if (deviceDisplay) {
-                deviceDisplay.textContent = selectedDeviceId;
+                deviceDisplay.textContent = selectedDeviceId || '--';
             }
+        }
+
+        // Resolve device ID from URL/localStorage (no HTTP dependency)
+        function getUrlParam(name){ const p=new URLSearchParams(window.location.search); return p.get(name); }
+        function updateDeviceId() {
+            const fromUrl = getUrlParam('device');
+            if (fromUrl) { selectedDeviceId = fromUrl; resolvedDevice = true; localStorage.setItem('setup_device_id', fromUrl); }
+            if (!resolvedDevice){
+                const saved = localStorage.getItem('setup_device_id') || localStorage.getItem('selectedDeviceId');
+                if (saved){ selectedDeviceId = saved; resolvedDevice = true; }
+            }
+            const deviceDisplay = document.getElementById('device-name-display');
+            if (deviceDisplay) deviceDisplay.textContent = selectedDeviceId || '--';
+            console.log('🎯 Using device id (URL/localStorage):', selectedDeviceId || '(none)');
         }
 
 
 
         // Handle Enter key in password input and initialize global password overlay
         document.addEventListener('DOMContentLoaded', function() {
+            // Get device ID from ESP32
+            updateDeviceId();
             // Keep emojis for better UI - don't strip them
             // stripEmojis();
             
@@ -1385,8 +1405,9 @@
 
         // Initialize app after password is entered
         function initializeApp() {
+            if (!selectedDeviceId){ allowDiscovery = true; }
             connectMQTT();
-            loadSettings();
+            // loadSettings will be called after we have a device id
         }
 
         // MQTT Connection
@@ -1409,21 +1430,36 @@
                     updateConnectionStatus(true);
                     reconnectAttempts = 0;
                     
-                    // Subscribe to BMS topics
-                    console.log('📡 Subscribing to topics...');
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/data`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/status`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/online`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/settings`);
-                    mqttClient.subscribe(`bms/${selectedDeviceId}/switches`);
-                    console.log('📡 Subscribed to all topics for device:', selectedDeviceId);
-                    
-                    // Request data from device
-                    console.log('📤 Requesting data from device...');
-                    requestData();
+                    // Subscribe discovery or specific topics
+                    if (allowDiscovery){
+                        console.log('📡 Discovery enabled: subscribing wildcard topics...');
+                        mqttClient.subscribe('bms/+/status');
+                        mqttClient.subscribe('bms/+/online');
+                        mqttClient.subscribe('bms/+/data');
+                    }
+                    if (selectedDeviceId){
+                        subscribeDeviceTopics(selectedDeviceId);
+                        requestData();
+                    }
                 });
 
                 mqttClient.on('message', (topic, message) => {
+                    try{
+                        if (allowDiscovery && !selectedDeviceId){
+                            const parts = topic.split('/');
+                            if (parts.length>=3 && parts[0]==='bms'){
+                                const devId = parts[1]; const msgType = parts[2];
+                                if (msgType==='status' || msgType==='online' || msgType==='data'){
+                                    selectedDeviceId = devId; resolvedDevice = true; allowDiscovery = false;
+                                    localStorage.setItem('setup_device_id', devId);
+                                    updateDeviceNameDisplay();
+                                    subscribeDeviceTopics(devId);
+                                    requestData();
+                                    loadSettings();
+                                }
+                            }
+                        }
+                    }catch(e){ /* ignore */ }
                     handleMQTTMessage(topic, message.toString());
                 });
 
@@ -1445,6 +1481,85 @@
             } catch (error) {
                 console.error('Lỗi kết nối MQTT:', error);
                 updateConnectionStatus(false);
+            }
+        }
+
+        // Subscribe to all specific topics for a given device and stop discovery if active
+        function subscribeDeviceTopics(deviceId){
+            if (!mqttClient || !mqttClient.connected){
+                console.warn(' Cannot subscribe, MQTT not connected');
+                return;
+            }
+            try{
+                // If discovery was enabled, turn it off and unsubscribe wildcard topics
+                if (allowDiscovery){
+                    allowDiscovery = false;
+                    try{ mqttClient.unsubscribe('bms/+/status'); }catch(e){}
+                    try{ mqttClient.unsubscribe('bms/+/online'); }catch(e){}
+                    try{ mqttClient.unsubscribe('bms/+/data'); }catch(e){}
+                }
+
+                mqttClient.subscribe(`bms/${deviceId}/data`);
+                mqttClient.subscribe(`bms/${deviceId}/status`);
+                mqttClient.subscribe(`bms/${deviceId}/online`);
+                mqttClient.subscribe(`bms/${deviceId}/settings`);
+                mqttClient.subscribe(`bms/${deviceId}/switches`);
+                mqttClient.subscribe(`bms/${deviceId}/policy`);
+                console.log(' Subscribed to device topics:', deviceId);
+            } catch (e) {
+                console.error(' Failed to subscribe topics:', e);
+            }
+        }
+
+        // Admin policy state (defaults allow all)
+        let policy = { allow_settings: true, allow_monitoring: true, disabled_setting_groups: [] };
+
+        function applyPolicy(){
+            // Settings policy
+            const settingsTab = document.getElementById('settings-tab');
+            if (settingsTab){
+                const disabledAll = !policy.allow_settings;
+                // Disable whole tab interactions
+                settingsTab.style.pointerEvents = disabledAll ? 'none' : '';
+                settingsTab.style.opacity = disabledAll ? '0.5' : '';
+                settingsTab.querySelectorAll('input, select, textarea, button').forEach(el=>{
+                    if (el.closest('.nav-tabs')) return; // keep navigation usable
+                    el.disabled = disabledAll;
+                });
+                // Fine-grained groups, if not fully disabled
+                if (!disabledAll){
+                    const groups = new Set(policy.disabled_setting_groups || []);
+                    const groupMap = {
+                        voltage: ['cell-overvoltage','cell-overvoltage-recovery','cell-undervoltage','cell-undervoltage-recovery','balance-trigger-voltage','balance-start-voltage','cell-soc100-voltage','cell-soc0-voltage','cell-request-charge-voltage','cell-request-float-voltage','smart-sleep-voltage','power-off-voltage','cell-count','capacity'],
+                        current: ['max-balance-current','charge-current','discharge-current','current-calibration'],
+                        time_delay: ['charge-ocp-delay-s','charge-ocpr-time-s','discharge-ocp-delay-s','discharge-ocpr-time-s','scp-delay-us','scp-recovery-time-s','request-charge-voltage-time-h','request-float-voltage-time-h','discharge-precharge-time-s','voltage-calibration'],
+                        temperature: ['charge-overtemp','charge-overtemp-recovery','discharge-overtemp','discharge-overtemp-recovery','charge-undertemp','charge-undertemp-recovery','mos-overtemp','mos-overtemp-recovery'],
+                        switches: ['charge-mosfet-on','discharge-mosfet-on','balancer-on','heating-on','disable-temperature-sensors','display-always-on','smart-sleep-on','disable-pcl-module','timed-stored-data','charging-float-mode','emergency-mode']
+                    };
+                    Object.entries(groupMap).forEach(([group, ids])=>{
+                        const dis = groups.has(group);
+                        ids.forEach(id=>{
+                            const el = document.getElementById(id);
+                            if (el){ el.disabled = dis || el.disabled; }
+                        });
+                    });
+                }
+            }
+            // Monitoring policy
+            const monitorTab = document.getElementById('monitor-tab');
+            if (monitorTab){
+                if (!policy.allow_monitoring){
+                    if (!document.getElementById('monitor-blocked')){
+                        const blocker = document.createElement('div');
+                        blocker.id = 'monitor-blocked';
+                        blocker.style.cssText = 'padding:40px; text-align:center; color:#c00; font-weight:600;';
+                        blocker.textContent = 'Monitoring disabled by administrator';
+                        monitorTab.prepend(blocker);
+                    }
+                } else {
+                    const blocker = document.getElementById('monitor-blocked');
+                    if (blocker) blocker.remove();
+                }
             }
         }
 
@@ -1481,6 +1596,16 @@
                         case 'switches':
                             const switches = JSON.parse(message);
                             updateSwitchesUI(switches);
+                            break;
+                        case 'policy':
+                            try{
+                                const p = JSON.parse(message);
+                                policy.allow_settings = (p.allow_settings !== false);
+                                policy.allow_monitoring = (p.allow_monitoring !== false);
+                                policy.disabled_setting_groups = Array.isArray(p.disabled_setting_groups)? p.disabled_setting_groups : [];
+                                console.log('🛡️ Applied policy:', policy);
+                                applyPolicy();
+                            }catch(e){ console.warn('Invalid policy payload'); }
                             break;
                     }
                 }
@@ -2185,21 +2310,21 @@
                 not_charging: "Không sạc",
                 not_balancing: "Không cân bằng",
                 device: "Thiết bị:",
-                main_info: "📊 Thông tin chính",
+                main_info: "Thông tin chính",
                 voltage: "Điện áp (V)",
                 current: "Dòng điện (A)",
                 battery_percent: "Phần trăm pin (%)",
                 power: "Công suất (W)",
-                temperature: "🌡️ Nhiệt độ",
+                temperature: "Nhiệt độ",
                 temp_sensor1: "Nhiệt độ cảm biến 1 (°C)",
                 temp_sensor2: "Nhiệt độ cảm biến 2 (°C)",
                 temp_mos: "Nhiệt độ cảm biến MOS (°C)",
-                cell_info: "🔋 Thông tin Cell",
+                cell_info: "Thông tin Cell",
                 min_voltage: "Điện áp thấp nhất (V)",
                 max_voltage: "Điện áp cao nhất (V)",
                 avg_voltage: "Điện áp trung bình (V)",
                 delta_voltage: "Điện áp chênh lệch (V)",
-                capacity: "📈 Dung lượng",
+                capacity: "Dung lượng",
                 min_resistance: "Điện trở thấp nhất (mΩ)",
                 max_resistance: "Điện trở cao nhất (mΩ)",
                 avg_resistance: "Điện trở trung bình (mΩ)",
@@ -2207,37 +2332,37 @@
                 current_capacity: "Dung lượng hiện tại (Ah)",
                 total_capacity: "Dung lượng tối đa (Ah)",
                 charge_cycles: "Số lần sạc",
-                cell_voltages: "⚡ Điện áp Cell",
-                cell_resistances: "⚡ Điện trở Cell",
-                esp32_control: "Điều khiển BMS",
+                cell_voltages: "Điện áp Cell",
+                cell_resistances: "Điện trở Cell",
+                esp32_control: "Điều khiển module cầu nối BMS",
                 emergency_stop: "Dừng khẩn cấp",
                 setup_mode: "Chế độ thiết lập",
                 power_cycle: "Khởi động lại nguồn (5s)",
                 recover_bms: "Khởi động lại BMS",
 
-                alerts: "⚠️ Cảnh báo",
+                alerts: "Cảnh báo",
                 no_alerts: "Không có cảnh báo",
-                online: "🟢 Online",
-                offline: "🔴 Offline",
-                charging: "🔌 Đang sạc",
-                discharging: "⚡ Đang xả",
-                not_charging_status: "⏸️ Không sạc",
-                balancing: "⚖️ Đang cân bằng",
-                not_balancing_status: "⏸️ Không cân bằng",
-                global_password_title: "🔒 JK BMS",
+                online: "Online",
+                offline: "Offline",
+                charging: "Đang sạc",
+                discharging: "Đang xả",
+                not_charging_status: "Không sạc",
+                balancing: "Đang cân bằng",
+                not_balancing_status: "Không cân bằng",
+                global_password_title: "JK BMS",
                 global_password_message: "Vui lòng nhập mật khẩu để truy cập",
                 global_password_placeholder: "Mật khẩu",
                 global_password_button: "Truy cập",
                 global_password_error: "Mật khẩu không đúng!",
-                settings_password: "🔒 Nhập mật khẩu để mở cài đặt",
+                settings_password: "Nhập mật khẩu để mở cài đặt",
                 password: "Mật khẩu",
                 unlock: "Mở khóa",
                 wrong_password: "Mật khẩu không đúng!",
-                voltage_settings: "⚡ Điện áp",
-                current_settings: "⚡ Dòng điện",
-                time_settings: "⏰ Thời gian & Độ trễ",
-                temp_settings: "🌡️ Nhiệt độ",
-                switch_settings: "🎛️ Công tắc điều khiển",
+                voltage_settings: "Điện áp",
+                current_settings: "Dòng điện",
+                time_settings: "Thời gian & Độ trễ",
+                temp_settings: "Nhiệt độ",
+                switch_settings: "Công tắc điều khiển",
                 save_settings: "Lưu cài đặt",
                 save_switches: "Lưu công tắc",
                 save_all_settings: "Lưu tất cả cài đặt",
@@ -2353,21 +2478,21 @@
                 not_charging: "Not Charging",
                 not_balancing: "Not Balancing",
                 device: "Device:",
-                main_info: "📊 Main Information",
+                main_info: "MAIN INFORMATION",
                 voltage: "Voltage (V)",
                 current: "Current (A)",
                 battery_percent: "Battery Percentage (%)",
                 power: "Power (W)",
-                temperature: "🌡️ Temperature",
+                temperature: "TEMPERATURE",
                 temp_sensor1: "Temperature Sensor 1 (°C)",
                 temp_sensor2: "Temperature Sensor 2 (°C)",
                 temp_mos: "MOS Temperature (°C)",
-                cell_info: "🔋 Cell Information",
+                cell_info: "CELL INFORMATION",
                 min_voltage: "Minimum Voltage (V)",
                 max_voltage: "Maximum Voltage (V)",
                 avg_voltage: "Average Voltage (V)",
                 delta_voltage: "Voltage Difference (V)",
-                capacity: "📈 Capacity",
+                capacity: "CAPACITY",
                 min_resistance: "Minimum Resistance (mΩ)",
                 max_resistance: "Maximum Resistance (mΩ)",
                 avg_resistance: "Average Resistance (mΩ)",
@@ -2375,37 +2500,37 @@
                 current_capacity: "Current Capacity (Ah)",
                 total_capacity: "Maximum Capacity (Ah)",
                 charge_cycles: "Charge Cycles",
-                cell_voltages: "⚡ Cell Voltages",
-                cell_resistances: "⚡ Cell Resistances",
-                esp32_control: "BMS Control",
+                cell_voltages: "CELL VOLTAGES",
+                cell_resistances: "Cell Resistances",
+                esp32_control: "BMS Bridge Module Control",
                 emergency_stop: "Emergency Stop",
                 setup_mode: "Setup Mode",
                 power_cycle: "Power Cycle (5s)",
-                recover_bms: "Restart BMS",
+                recover_bms: "RESTART BMS",
 
-                alerts: "⚠️ Alerts",
-                no_alerts: "No alerts",
-                online: "🟢 Online",
-                offline: "🔴 Offline",
-                charging: "🔌 Charging",
-                discharging: "⚡ Discharging",
-                not_charging_status: "⏸️ Not Charging",
-                balancing: "⚖️ Balancing",
-                not_balancing_status: "⏸️ Not Balancing",
-                global_password_title: "🔒 JK BMS",
+                alerts: "Alerts",
+                no_alerts: "NO ALERTS",
+                online: "Online",
+                offline: "Offline",
+                charging: "Charging",
+                discharging: "Discharging",
+                not_charging_status: "Not Charging",
+                balancing: "Balancing",
+                not_balancing_status: "Not Balancing",
+                global_password_title: "JK BMS",
                 global_password_message: "Please enter password to access",
                 global_password_placeholder: "Password",
                 global_password_button: "Access",
                 global_password_error: "Wrong password!",
-                settings_password: "🔒 Enter password to unlock settings",
+                settings_password: "Enter password to unlock settings",
                 password: "Password",
                 unlock: "Unlock",
                 wrong_password: "Wrong password!",
-                voltage_settings: "⚡ Voltage",
-                current_settings: "⚡ Current",
-                time_settings: "⏰ Time & Delay",
-                temp_settings: "🌡️ Temperature",
-                switch_settings: "🎛️ Control Switches",
+                voltage_settings: "Voltage",
+                current_settings: "Current",
+                time_settings: "Time & Delay",
+                temp_settings: "Temperature",
+                switch_settings: "Control Switches",
                 save_settings: "Save Settings",
                 save_switches: "Save Switches",
                 save_all_settings: "Save All Settings",
@@ -2998,3 +3123,4 @@
     </script>
 </body>
 </html>
+
